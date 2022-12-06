@@ -9,6 +9,10 @@
 <% } %}
 Commit: <%= prNumber.substring(0, 7) %>
 
+<% if(customMessage) { %>
+<%= customMessage %>
+<% } %>
+
 <!-- Totals -->
 | Total             | <%= total.percent %>% |
 | :---------------- | --------------------: |
