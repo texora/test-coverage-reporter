@@ -31,10 +31,10 @@ Commit: <%= prNumber.substring(0, 7) %>
 <% } %>
 
 <!-- Unchanged files -->
-<% if (changed.length){ %>
+<% if (unchanged.length){ %>
 <details>
 <summary markdown="span">
-### All other files
+All other files
 </summary>
 
 | File | Stmts | Branch | Funcs | Lines |
