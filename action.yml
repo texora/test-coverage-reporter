@@ -1,0 +1,29 @@
+name: Test Coverage Reporter
+description: Generate a coverage report based on a base/master coverage report"
+branding:
+  icon: git-pull-request
+  color: purple
+inputs:
+  coverage-file:
+    required: true
+    description: Path to the coverage report
+  base-coverage-file:
+    required: true
+    description: Path to the coverage report from the branch this will be merging into
+  access-token:
+    description: Required to comment on your PR
+    default: ${{ github.token }}
+  fail-delta:
+    description: If coverage for any file is reduced by this much (in percent) the run will fail.
+    default: 0.2
+  custom-message:
+    description: Add custom text to the output.
+  title:
+    description: The coverage report title
+    default: Coverage Report
+  strip-path-prefix:
+    description: Remove this part of the path of the front of all file paths.
+
+runs:
+  using: "node16"
+  main: "dest/index.js"
