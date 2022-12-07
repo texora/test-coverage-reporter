@@ -27171,21 +27171,27 @@ function renderFileSummaryFactory(inputs) {
     const hasDiffs = ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) > 0;
     return function renderFileSummary(summary) {
         const linePercent = Number(summary.lines.percent);
-        let status = ":red_circle:";
+        let color = ":red_circle:";
         if (linePercent > 80) {
-            status = ":green_circle:";
+            color = ":green_circle:";
         }
         else if (linePercent > 40) {
-            status = ":yellow_circle:";
+            color = ":yellow_circle:";
         }
+        const formatText = (text) => {
+            if (summary.name === "Total") {
+                return `**${text}**`;
+            }
+            return text;
+        };
         const itemOutput = (item) => {
             let itemOut = `${item.percent}%`;
             if (hasDiffs && item.diff !== "0") {
                 itemOut += ` (${item.diff})`;
             }
-            return itemOut;
+            return formatText(itemOut);
         };
-        return (`| ${status} ${summary.name} ` +
+        return (`| ${color} ${formatText(summary.name)} ` +
             `| ${itemOutput(summary.statements)} ` +
             `| ${itemOutput(summary.branches)} ` +
             `| ${itemOutput(summary.functions)} ` +

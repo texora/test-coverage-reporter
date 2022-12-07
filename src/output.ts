@@ -235,23 +235,30 @@ function renderFileSummaryFactory(inputs: Inputs) {
   return function renderFileSummary(summary: TemplateDiffSummary) {
     const linePercent = Number(summary.lines.percent);
 
-    let status = ":red_circle:";
+    let color = ":red_circle:";
     if (linePercent > 80) {
-      status = ":green_circle:";
+      color = ":green_circle:";
     } else if (linePercent > 40) {
-      status = ":yellow_circle:";
+      color = ":yellow_circle:";
     }
+
+    const formatText = (text: string) => {
+      if (summary.name === "Total") {
+        return `**${text}**`;
+      }
+      return text;
+    };
 
     const itemOutput = (item: TemplateDiffSummaryValues) => {
       let itemOut = `${item.percent}%`;
       if (hasDiffs && item.diff !== "0") {
         itemOut += ` (${item.diff})`;
       }
-      return itemOut;
+      return formatText(itemOut);
     };
 
     return (
-      `| ${status} ${summary.name} ` +
+      `| ${color} ${formatText(summary.name)} ` +
       `| ${itemOutput(summary.statements)} ` +
       `| ${itemOutput(summary.branches)} ` +
       `| ${itemOutput(summary.functions)} ` +
