@@ -11,8 +11,8 @@ describe("diff", () => {
     inputs = {
       title: "test",
       accessToken: "",
-      baseCoveragePath: "",
-      coveragePath: "",
+      coveragePath: "coverage/report-final.json",
+      baseCoveragePath: "base/coverage/report-final.json",
       customMessage: "",
       failDelta: 0.2,
       stripPathPrefix: "",
