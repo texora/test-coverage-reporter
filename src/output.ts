@@ -36,10 +36,14 @@ const PR_COMMENT_IDENTIFIER = "<!-- test-coverage-reporter-output -->";
 /**
  * Generate the coverage summary output
  */
-export function generateOutput(report: DiffReport, inputs: Inputs) {
+export function generateOutput(
+  report: DiffReport,
+  failureMessage: string | null,
+  inputs: Inputs
+) {
   try {
     const tmplContent = loadFile(TMPL_FILE_PATH);
-    const tmplVars = getTemplateVars(report, inputs);
+    const tmplVars = getTemplateVars(report, failureMessage, inputs);
     return template(tmplContent)(tmplVars);
   } catch (error) {
     throw new Error(`Template error: ${(error as Error).message}`);
@@ -51,6 +55,7 @@ export function generateOutput(report: DiffReport, inputs: Inputs) {
  */
 export function getTemplateVars(
   report: DiffReport,
+  failureMessage: string | null,
   inputs: Inputs
 ): TemplateVars {
   const hasDiffs = inputs.baseCoveragePath?.length > 0;
@@ -59,14 +64,17 @@ export function getTemplateVars(
   const commitUrl = `${inputs.context.payload.repository?.html_url}/commits/${commitSha}`;
 
   const tmplVars: TemplateVars = {
-    coverageFileFailurePercent: null,
+    failureMessage,
+    failed: failureMessage !== null,
     changed: [],
     unchanged: [],
     all: [],
     total: {
-      lines: "0",
-      diff: "0",
-      percent: "0",
+      name: "total",
+      lines: { percent: "0", diff: "0" },
+      statements: { percent: "0", diff: "0" },
+      functions: { percent: "0", diff: "0" },
+      branches: { percent: "0", diff: "0" },
     },
     hasDiffs,
     title: inputs.title,
@@ -83,32 +91,27 @@ export function getTemplateVars(
 
   // Process all the file deltas
   let coverageFileFailurePercent = 0;
-  Object.entries(report).forEach(([key, summary]) => {
-    if (key === "total") {
-      return;
-    }
-
+  Object.entries(report.sections).forEach(([key, summary]) => {
     // Strip path prefix and add to report
-    let filepath = key;
-    if (stripPathPrefix && filepath.indexOf(stripPathPrefix) === 0) {
-      filepath = filepath.substring(stripPathPrefix.length);
+    let name = key;
+    if (stripPathPrefix && name.indexOf(stripPathPrefix) === 0) {
+      name = name.substring(stripPathPrefix.length);
     }
 
     let hasChange = false;
-    const defaultNums: TemplateDiffSummaryValues = { percent: "0", diff: "0" };
     const tmplFileSummary: TemplateDiffSummary = {
-      filepath,
+      name,
       isNewFile: summary.isNewFile,
-      lines: defaultNums,
-      statements: defaultNums,
-      functions: defaultNums,
-      branches: defaultNums,
+      lines: { percent: "0", diff: "0" },
+      statements: { percent: "0", diff: "0" },
+      functions: { percent: "0", diff: "0" },
+      branches: { percent: "0", diff: "0" },
     };
 
     NUMBER_SUMMARY_KEYS.forEach((type) => {
-      const value = summary[type].percent;
+      const percent = summary[type].percent;
       const diff = summary[type].diff;
-      tmplFileSummary[type].percent = decimalToString(value);
+      tmplFileSummary[type].percent = decimalToString(percent);
       tmplFileSummary[type].diff = decimalToString(diff);
 
       // Does this file coverage fall under the fail delta?
@@ -123,25 +126,14 @@ export function getTemplateVars(
     });
 
     // Add to file bucket
-    const bucket = hasChange ? "changed" : "unchanged";
-    tmplVars[bucket].push(tmplFileSummary);
-    tmplVars.all.push(tmplFileSummary);
+    if (key === "total") {
+      tmplVars.total = tmplFileSummary;
+    } else {
+      const bucket = hasChange ? "changed" : "unchanged";
+      tmplVars[bucket].push(tmplFileSummary);
+      tmplVars.all.push(tmplFileSummary);
+    }
   });
-
-  // Process totals
-  if (report.total) {
-    tmplVars.total = {
-      lines: Number(report.total.lines.total).toLocaleString(),
-      percent: decimalToString(report.total.lines.percent),
-      diff: decimalToString(report.total.lines.diff),
-    };
-  }
-
-  if (coverageFileFailurePercent !== 0) {
-    tmplVars.coverageFileFailurePercent = decimalToString(
-      Math.abs(coverageFileFailurePercent)
-    );
-  }
 
   return tmplVars as TemplateVars;
 }
@@ -239,18 +231,14 @@ export function createSummary(output: string, failed: boolean, inputs: Inputs) {
  */
 function renderFileSummaryFactory(inputs: Inputs) {
   const hasDiffs = inputs.baseCoveragePath?.length > 0;
-  return function renderFileSummary(file: TemplateDiffSummary) {
-    const linePercent = Number(file.lines.percent);
+  return function renderFileSummary(summary: TemplateDiffSummary) {
+    const linePercent = Number(summary.lines.percent);
 
     let status = ":red_circle:";
     if (linePercent > 80) {
       status = ":green_circle:";
     } else if (linePercent > 40) {
       status = ":yellow_circle:";
-    }
-
-    if (file.isNewFile && hasDiffs) {
-      status += ":new:";
     }
 
     const itemOutput = (item: TemplateDiffSummaryValues) => {
@@ -262,11 +250,11 @@ function renderFileSummaryFactory(inputs: Inputs) {
     };
 
     return (
-      `| ${status} ${file.filepath} ` +
-      `| ${itemOutput(file.statements)} ` +
-      `| ${itemOutput(file.branches)} ` +
-      `| ${itemOutput(file.functions)} ` +
-      `| ${itemOutput(file.lines)}`
+      `| ${status} ${summary.name} ` +
+      `| ${itemOutput(summary.statements)} ` +
+      `| ${itemOutput(summary.branches)} ` +
+      `| ${itemOutput(summary.functions)} ` +
+      `| ${itemOutput(summary.lines)}`
     );
   };
 }

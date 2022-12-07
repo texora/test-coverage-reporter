@@ -2,6 +2,9 @@ name: Unit Tests
 on: pull_request
 
 jobs:
+  #
+  # Run unit tests on PR branch
+  #
   test:
     runs-on: ubuntu-latest
     steps:
@@ -21,6 +24,11 @@ jobs:
           path: coverage/
           retention-days: 1
 
+  #
+  # Get coverage on base branch by running tests.
+  # This isn't very efficient for large test suites,
+  # in that case consider using long-lived artifacts.
+  #
   baseCoverage:
     runs-on: ubuntu-latest
     steps:
@@ -42,6 +50,9 @@ jobs:
           path: coverage/
           retention-days: 1
 
+  #
+  # Create coverage report
+  #
   report:
     runs-on: ubuntu-latest
     needs: [test, baseCoverage]

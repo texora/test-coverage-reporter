@@ -26736,7 +26736,10 @@ exports.generateDiffReport = void 0;
  */
 function generateDiffReport(coverage, baseCoverage, inputs) {
     var _a;
-    const diffReport = {};
+    const diffReport = {
+        biggestDiff: 0,
+        sections: {},
+    };
     const hasBaseCoverage = ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) > 0;
     // Generate diff for each file
     Object.keys(coverage).map((key) => {
@@ -26747,13 +26750,15 @@ function generateDiffReport(coverage, baseCoverage, inputs) {
             typeof target.lines !== "undefined" &&
             typeof base.lines === "undefined";
         // Generate delta
-        diffReport[key] = {
+        const section = {
             isNewFile,
             lines: generateDiff("lines", target, base),
             statements: generateDiff("statements", target, base),
             functions: generateDiff("functions", target, base),
             branches: generateDiff("branches", target, base),
         };
+        diffReport.sections[key] = section;
+        diffReport.biggestDiff = Math.min(diffReport.biggestDiff, section.lines.diff, section.statements.diff, section.functions.diff, section.branches.diff);
     });
     return diffReport;
 }
@@ -26917,16 +26922,20 @@ async function main() {
         // Generate diff report
         console.log("Generating diff report");
         const diff = (0, diff_1.generateDiffReport)(coverage, baseCoverage, inputs);
-        const failed = diff.coverageFileFailurePercent !== null;
+        // Check for PR failure
+        const failed = Math.abs(diff.biggestDiff) >= inputs.failDelta;
+        const failureMessage = failed
+            ? `The coverage is reduced by at least ${Math.abs(diff.biggestDiff)}% for one or more files.`
+            : null;
         // Generate template
         console.log("Generating summary");
-        const output = (0, output_1.generateOutput)(diff, inputs);
+        const output = (0, output_1.generateOutput)(diff, failureMessage, inputs);
         // Outputs
         console.log("Output summary");
         await (0, output_1.createSummary)(output, failed, inputs);
         await (0, output_1.createPRComment)(output, inputs);
-        if (failed) {
-            core.setFailed(`The coverage is reduced by at least ${diff.coverageFileFailurePercent}% for one or more files.`);
+        if (failureMessage) {
+            core.setFailed(failureMessage);
         }
     }
     catch (error) {
@@ -26992,10 +27001,10 @@ const PR_COMMENT_IDENTIFIER = "<!-- test-coverage-reporter-output -->";
 /**
  * Generate the coverage summary output
  */
-function generateOutput(report, inputs) {
+function generateOutput(report, failureMessage, inputs) {
     try {
         const tmplContent = (0, fileLoader_1.loadFile)(TMPL_FILE_PATH);
-        const tmplVars = getTemplateVars(report, inputs);
+        const tmplVars = getTemplateVars(report, failureMessage, inputs);
         return (0, lodash_1.template)(tmplContent)(tmplVars);
     }
     catch (error) {
@@ -27006,20 +27015,23 @@ exports.generateOutput = generateOutput;
 /**
  * Create template variables
  */
-function getTemplateVars(report, inputs) {
+function getTemplateVars(report, failureMessage, inputs) {
     var _a, _b, _c, _d;
     const hasDiffs = ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) > 0;
     const commitSha = ((_c = (_b = inputs.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.head) === null || _c === void 0 ? void 0 : _c.sha) || github.context.sha;
     const commitUrl = `${(_d = inputs.context.payload.repository) === null || _d === void 0 ? void 0 : _d.html_url}/commits/${commitSha}`;
     const tmplVars = {
-        coverageFileFailurePercent: null,
+        failureMessage,
+        failed: failureMessage !== null,
         changed: [],
         unchanged: [],
         all: [],
         total: {
-            lines: "0",
-            diff: "0",
-            percent: "0",
+            name: "total",
+            lines: { percent: "0", diff: "0" },
+            statements: { percent: "0", diff: "0" },
+            functions: { percent: "0", diff: "0" },
+            branches: { percent: "0", diff: "0" },
         },
         hasDiffs,
         title: inputs.title,
@@ -27033,29 +27045,25 @@ function getTemplateVars(report, inputs) {
     const failDelta = inputs.failDelta > 0 ? inputs.failDelta * -1 : inputs.failDelta;
     // Process all the file deltas
     let coverageFileFailurePercent = 0;
-    Object.entries(report).forEach(([key, summary]) => {
-        if (key === "total") {
-            return;
-        }
+    Object.entries(report.sections).forEach(([key, summary]) => {
         // Strip path prefix and add to report
-        let filepath = key;
-        if (stripPathPrefix && filepath.indexOf(stripPathPrefix) === 0) {
-            filepath = filepath.substring(stripPathPrefix.length);
+        let name = key;
+        if (stripPathPrefix && name.indexOf(stripPathPrefix) === 0) {
+            name = name.substring(stripPathPrefix.length);
         }
         let hasChange = false;
-        const defaultNums = { percent: "0", diff: "0" };
         const tmplFileSummary = {
-            filepath,
+            name,
             isNewFile: summary.isNewFile,
-            lines: defaultNums,
-            statements: defaultNums,
-            functions: defaultNums,
-            branches: defaultNums,
+            lines: { percent: "0", diff: "0" },
+            statements: { percent: "0", diff: "0" },
+            functions: { percent: "0", diff: "0" },
+            branches: { percent: "0", diff: "0" },
         };
         NUMBER_SUMMARY_KEYS.forEach((type) => {
-            const value = summary[type].percent;
+            const percent = summary[type].percent;
             const diff = summary[type].diff;
-            tmplFileSummary[type].percent = decimalToString(value);
+            tmplFileSummary[type].percent = decimalToString(percent);
             tmplFileSummary[type].diff = decimalToString(diff);
             // Does this file coverage fall under the fail delta?
             if (diff < failDelta && diff < coverageFileFailurePercent) {
@@ -27067,21 +27075,15 @@ function getTemplateVars(report, inputs) {
             }
         });
         // Add to file bucket
-        const bucket = hasChange ? "changed" : "unchanged";
-        tmplVars[bucket].push(tmplFileSummary);
-        tmplVars.all.push(tmplFileSummary);
+        if (key === "total") {
+            tmplVars.total = tmplFileSummary;
+        }
+        else {
+            const bucket = hasChange ? "changed" : "unchanged";
+            tmplVars[bucket].push(tmplFileSummary);
+            tmplVars.all.push(tmplFileSummary);
+        }
     });
-    // Process totals
-    if (report.total) {
-        tmplVars.total = {
-            lines: Number(report.total.lines.total).toLocaleString(),
-            percent: decimalToString(report.total.lines.percent),
-            diff: decimalToString(report.total.lines.diff),
-        };
-    }
-    if (coverageFileFailurePercent !== 0) {
-        tmplVars.coverageFileFailurePercent = decimalToString(Math.abs(coverageFileFailurePercent));
-    }
     return tmplVars;
 }
 exports.getTemplateVars = getTemplateVars;
@@ -27166,17 +27168,14 @@ exports.createSummary = createSummary;
 function renderFileSummaryFactory(inputs) {
     var _a;
     const hasDiffs = ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) > 0;
-    return function renderFileSummary(file) {
-        const linePercent = Number(file.lines.percent);
+    return function renderFileSummary(summary) {
+        const linePercent = Number(summary.lines.percent);
         let status = ":red_circle:";
         if (linePercent > 80) {
             status = ":green_circle:";
         }
         else if (linePercent > 40) {
             status = ":yellow_circle:";
-        }
-        if (file.isNewFile && hasDiffs) {
-            status += ":new:";
         }
         const itemOutput = (item) => {
             let itemOut = `${item.percent}%`;
@@ -27185,11 +27184,11 @@ function renderFileSummaryFactory(inputs) {
             }
             return itemOut;
         };
-        return (`| ${status} ${file.filepath} ` +
-            `| ${itemOutput(file.statements)} ` +
-            `| ${itemOutput(file.branches)} ` +
-            `| ${itemOutput(file.functions)} ` +
-            `| ${itemOutput(file.lines)}`);
+        return (`| ${status} ${summary.name} ` +
+            `| ${itemOutput(summary.statements)} ` +
+            `| ${itemOutput(summary.branches)} ` +
+            `| ${itemOutput(summary.functions)} ` +
+            `| ${itemOutput(summary.lines)}`);
     };
 }
 

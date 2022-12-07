@@ -2,10 +2,12 @@
 
 ## <%= title %>
 
-<% if (coverageFileFailurePercent) { %>
+<% if (failed) { %>
 :white_check_mark: **Passed**
 <% } else { %>
 :x: **Failed**
+{failureMessage}
+
 <% } %>
 Commit: [<%= commitSha.substring(0, 7) %>](commitUrl)
 
@@ -14,49 +16,54 @@ Commit: [<%= commitSha.substring(0, 7) %>](commitUrl)
 <% } %>
 
 <!-- Totals -->
-| Total             | <%= total.percent %>% |
-| :---------------- | --------------------: |
-<% if (!hasDiffs){ %>| Change from base: |    <%= total.diff %>% |<% } %>
-| Total Lines:      |    <%= total.lines %> |
+
+| Total | <%= total.percent %>% |
+| :---------------- | --------------------: | <%
+if (!hasDiffs){ %>| Change from base: | <%= total.diff %>% |
+<% } %>| Total Lines: | <%= total.lines %> |
 
 <!-- All files, if diffs aren't present -->
+
 <% if (!hasDiffs && all.length){ %>
+
 <details>
 <summary markdown="span">
 All files
 </summary>
 
 | File | Stmts | Branch | Funcs | Lines |
-| ---- | ----- | ------ | ----- | ----- |
-<% all.forEach((fileSummary) => { %>
-<%= renderFileSummary(fileSummary) %>
-<% }) %>
+| ---- | ----- | ------ | ----- | ----- | <%=
+renderFileSummary(total) %><%
+all.forEach((fileSummary) => { print(renderFileSummary(fileSummary))
+}) %>
+
 </details>
 <% } %>
 
-
 <!-- Changed files -->
+
 <% if (changed.length){ %>
-### Changed files
 
 | File | Stmts | Branch | Funcs | Lines |
-| ---- | ----- | ------ | ----- | ----- |
-<% changed.forEach((fileSummary) => { %>
-<%= renderFileSummary(fileSummary) %>
-<% }) %>
+| ---- | ----- | ------ | ----- | ----- | <%=
+renderFileSummary(total) %><%
+changed.forEach((fileSummary) => { renderFileSummary(fileSummary)
+}) %>
 <% } %>
 
 <!-- Unchanged files -->
+
 <% if (unchanged.length){ %>
+
 <details>
 <summary markdown="span">
 All other files
 </summary>
 
 | File | Stmts | Branch | Funcs | Lines |
-| ---- | ----- | ------ | ----- | ----- |
-<% unchanged.forEach((fileSummary) => { %>
-<%= renderFileSummary(fileSummary) %>
-<% }) %>
+| ---- | ----- | ------ | ----- | ----- |<%
+unchanged.forEach((fileSummary) => { renderFileSummary(fileSummary)
+}) %>
+
 </details>
 <% } %>

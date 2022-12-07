@@ -14,7 +14,10 @@ export function generateDiffReport(
   baseCoverage: CoverageSummary,
   inputs: Inputs
 ): DiffReport {
-  const diffReport: DiffReport = {};
+  const diffReport: DiffReport = {
+    biggestDiff: 0,
+    sections: {},
+  };
   const hasBaseCoverage = inputs.baseCoveragePath?.length > 0;
 
   // Generate diff for each file
@@ -28,13 +31,21 @@ export function generateDiffReport(
       typeof base.lines === "undefined";
 
     // Generate delta
-    diffReport[key] = {
+    const section = {
       isNewFile,
       lines: generateDiff("lines", target, base),
       statements: generateDiff("statements", target, base),
       functions: generateDiff("functions", target, base),
       branches: generateDiff("branches", target, base),
     };
+    diffReport.sections[key] = section;
+    diffReport.biggestDiff = Math.min(
+      diffReport.biggestDiff,
+      section.lines.diff,
+      section.statements.diff,
+      section.functions.diff,
+      section.branches.diff
+    );
   });
 
   return diffReport;

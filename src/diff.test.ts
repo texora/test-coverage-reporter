@@ -59,7 +59,7 @@ describe("diff", () => {
       });
 
       const diff = generateDiffReport(targetCoverage, {}, inputs);
-      expect(diff["file1"].isNewFile).toBe(true);
+      expect(diff.sections["file1"].isNewFile).toBe(true);
     });
 
     test("not new file", () => {
@@ -74,7 +74,7 @@ describe("diff", () => {
         percent: 100,
       });
       const diff = generateDiffReport(targetCoverage, baseCoverage, inputs);
-      expect(diff["file1"].isNewFile).toBe(false);
+      expect(diff.sections["file1"].isNewFile).toBe(false);
     });
 
     test("has more test coverage", () => {
@@ -90,8 +90,8 @@ describe("diff", () => {
       });
 
       const diff = generateDiffReport(targetCoverage, baseCoverage, inputs);
-      expect(diff["file1"].lines.percent).toBe(100);
-      expect(diff["file1"].lines.diff).toBe(15);
+      expect(diff.sections["file1"].lines.percent).toBe(100);
+      expect(diff.sections["file1"].lines.diff).toBe(15);
     });
 
     test("has less test coverage", () => {
@@ -107,8 +107,8 @@ describe("diff", () => {
       });
 
       const diff = generateDiffReport(targetCoverage, baseCoverage, inputs);
-      expect(diff["file1"].lines.percent).toBe(85);
-      expect(diff["file1"].lines.diff).toBe(-15);
+      expect(diff.sections["file1"].lines.percent).toBe(85);
+      expect(diff.sections["file1"].lines.diff).toBe(-15);
     });
   });
 });

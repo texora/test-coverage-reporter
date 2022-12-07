@@ -43,21 +43,26 @@ export async function main() {
     // Generate diff report
     console.log("Generating diff report");
     const diff = generateDiffReport(coverage, baseCoverage, inputs);
-    const failed = diff.coverageFileFailurePercent !== null;
+
+    // Check for PR failure
+    const failed = Math.abs(diff.biggestDiff) >= inputs.failDelta;
+    const failureMessage = failed
+      ? `The coverage is reduced by at least ${Math.abs(
+          diff.biggestDiff
+        )}% for one or more files.`
+      : null;
 
     // Generate template
     console.log("Generating summary");
-    const output = generateOutput(diff, inputs);
+    const output = generateOutput(diff, failureMessage, inputs);
 
     // Outputs
     console.log("Output summary");
     await createSummary(output, failed, inputs);
     await createPRComment(output, inputs);
 
-    if (failed) {
-      core.setFailed(
-        `The coverage is reduced by at least ${diff.coverageFileFailurePercent}% for one or more files.`
-      );
+    if (failureMessage) {
+      core.setFailed(failureMessage);
     }
   } catch (error) {
     console.error(error);
