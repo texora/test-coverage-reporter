@@ -26757,14 +26757,6 @@ function generateDiffReport(coverage, baseCoverage, inputs) {
             functions: generateDiff("functions", target, base),
             branches: generateDiff("branches", target, base),
         };
-        if (key === "total") {
-            console.log("Base");
-            console.log(base);
-            console.log("Target");
-            console.log(target);
-            console.log("Diff");
-            console.log(section);
-        }
         diffReport.sections[key] = section;
         diffReport.biggestDiff = Math.min(diffReport.biggestDiff, section.lines.diff, section.statements.diff, section.functions.diff, section.branches.diff);
     });

@@ -39,17 +39,6 @@ export function generateDiffReport(
       branches: generateDiff("branches", target, base),
     };
 
-    if (key === "total") {
-      console.log("Base");
-      console.log(base);
-
-      console.log("Target");
-      console.log(target);
-
-      console.log("Diff");
-      console.log(section);
-    }
-
     diffReport.sections[key] = section;
     diffReport.biggestDiff = Math.min(
       diffReport.biggestDiff,

@@ -48,7 +48,7 @@ All files
 
 <details>
 <summary markdown="span">
-All other files
+Unchanged files
 </summary>
 
 | Name | Stmts | Branch | Funcs | Lines |
