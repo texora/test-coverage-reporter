@@ -235,11 +235,11 @@ function renderFileSummaryFactory(inputs: Inputs) {
   return function renderFileSummary(summary: TemplateDiffSummary) {
     const linePercent = Number(summary.lines.percent);
 
-    let color = ":red_circle:";
+    let status = ":red_circle:";
     if (linePercent > 80) {
-      color = ":green_circle:";
+      status = ":green_circle:";
     } else if (linePercent > 40) {
-      color = ":yellow_circle:";
+      status = ":yellow_circle:";
     }
 
     const formatText = (text: string) => {
@@ -258,7 +258,7 @@ function renderFileSummaryFactory(inputs: Inputs) {
     };
 
     return (
-      `| ${color} ${formatText(summary.name)} ` +
+      `| ${status} ${formatText(summary.name)} ` +
       `| ${itemOutput(summary.statements)} ` +
       `| ${itemOutput(summary.branches)} ` +
       `| ${itemOutput(summary.functions)} ` +

@@ -27171,12 +27171,12 @@ function renderFileSummaryFactory(inputs) {
     const hasDiffs = ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) > 0;
     return function renderFileSummary(summary) {
         const linePercent = Number(summary.lines.percent);
-        let color = ":red_circle:";
+        let status = ":red_circle:";
         if (linePercent > 80) {
-            color = ":green_circle:";
+            status = ":green_circle:";
         }
         else if (linePercent > 40) {
-            color = ":yellow_circle:";
+            status = ":yellow_circle:";
         }
         const formatText = (text) => {
             if (summary.name === "Total") {
@@ -27191,7 +27191,7 @@ function renderFileSummaryFactory(inputs) {
             }
             return formatText(itemOut);
         };
-        return (`| ${color} ${formatText(summary.name)} ` +
+        return (`| ${status} ${formatText(summary.name)} ` +
             `| ${itemOutput(summary.statements)} ` +
             `| ${itemOutput(summary.branches)} ` +
             `| ${itemOutput(summary.functions)} ` +

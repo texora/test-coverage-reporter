@@ -3,6 +3,9 @@
 A github action that generates a comprehensive unit test coverage, including optional coverage diff with the branch the PR
 will merge into.
 
+![Screenshot](./screenshot_dark.png#gh-dark-mode-only | width=400)
+![Screenshot](./screenshot_light.png#gh-light-mode-only | width=400)
+
 ```
 - name: Generate report
   uses: jgillick/test-coverage-reporter@main
