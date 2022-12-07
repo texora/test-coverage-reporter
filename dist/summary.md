@@ -6,7 +6,7 @@
 :white_check_mark: **Passed**
 <% } else { %>
 :x: **Failed**
-<% } %}
+<% } %>
 Commit: <%= prNumber.substring(0, 7) %>
 
 <% if(customMessage) { %>

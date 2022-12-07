@@ -26993,9 +26993,14 @@ const PR_COMMENT_IDENTIFIER = "<!-- test-coverage-reporter-output -->";
  * Generate the coverage summary output
  */
 function generateOutput(report, inputs) {
-    const tmplContent = (0, fileLoader_1.loadFile)(TMPL_FILE_PATH);
-    const tmplVars = getTemplateVars(report, inputs);
-    return (0, lodash_1.template)(tmplContent)(tmplVars);
+    try {
+        const tmplContent = (0, fileLoader_1.loadFile)(TMPL_FILE_PATH);
+        const tmplVars = getTemplateVars(report, inputs);
+        return (0, lodash_1.template)(tmplContent)(tmplVars);
+    }
+    catch (error) {
+        throw new Error(`Error generating template: ${error.message}`);
+    }
 }
 exports.generateOutput = generateOutput;
 /**

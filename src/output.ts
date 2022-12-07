@@ -37,9 +37,13 @@ const PR_COMMENT_IDENTIFIER = "<!-- test-coverage-reporter-output -->";
  * Generate the coverage summary output
  */
 export function generateOutput(report: DiffReport, inputs: Inputs) {
-  const tmplContent = loadFile(TMPL_FILE_PATH);
-  const tmplVars = getTemplateVars(report, inputs);
-  return template(tmplContent)(tmplVars);
+  try {
+    const tmplContent = loadFile(TMPL_FILE_PATH);
+    const tmplVars = getTemplateVars(report, inputs);
+    return template(tmplContent)(tmplVars);
+  } catch (error) {
+    throw new Error(`Error generating template: ${(error as Error).message}`);
+  }
 }
 
 /**
