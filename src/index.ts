@@ -21,6 +21,7 @@ function loadInputs(): Inputs {
     title: core.getInput("title"),
     customMessage: core.getInput("custom-message"),
     stripPathPrefix: core.getInput("strip-path-prefix") || pwd,
+    context: github.context,
   };
 }
 
@@ -40,7 +41,7 @@ export async function main() {
     ]);
 
     // Generate diff report
-    const diff = generateDiffReport(coverage, baseCoverage, inputs);
+    const diff = generateDiffReport(coverage, baseCoverage);
     const failed = diff.coverageFileFailurePercent !== null;
 
     // Generate template

@@ -60,7 +60,7 @@ export function getTemplateVars(
     },
     title: inputs.title,
     customMessage: inputs.customMessage,
-    prNumber: github.context.issue.number,
+    prNumber: inputs.context.issue.number,
     prIdentifier: PR_COMMENT_IDENTIFIER,
 
     renderFileSummary,
@@ -95,16 +95,17 @@ export function getTemplateVars(
 
     NUMBER_SUMMARY_KEYS.forEach((type) => {
       const value = summary[type].percent;
-      tmplFileSummary[type].percent = Number(value).toLocaleString();
-      tmplFileSummary[type].diff = decimalToString(summary[type].diff);
+      const diff = summary[type].diff;
+      tmplFileSummary[type].percent = decimalToString(value);
+      tmplFileSummary[type].diff = decimalToString(diff);
 
       // Does this file coverage fall under the fail delta?
-      if (value < failDelta && value < coverageFileFailurePercent) {
-        coverageFileFailurePercent = value;
+      if (diff < failDelta && diff < coverageFileFailurePercent) {
+        coverageFileFailurePercent = diff;
       }
 
       // If the coverage changed by more than 0.1, add file to the changed bucket
-      if (!hasChange && Math.abs(value) >= MIN_CHANGE) {
+      if (!hasChange && Math.abs(diff) >= MIN_CHANGE) {
         hasChange = true;
       }
     });
@@ -118,7 +119,7 @@ export function getTemplateVars(
   if (report.total) {
     tmplVars.total = {
       lines: Number(report.total.lines.total).toLocaleString(),
-      percent: Number(report.total.lines.percent).toLocaleString(),
+      percent: decimalToString(report.total.lines.percent),
       diff: decimalToString(report.total.lines.diff),
     };
   }
@@ -136,8 +137,12 @@ export function getTemplateVars(
  * Format a decimal percent number to a string percent
  */
 export function decimalToString(val: number): string {
-  // Found to 1 decimal place
-  val = Math.round(val * 10) / 10;
+  const multiplier = val < 0 ? -1 : 1;
+
+  // Round to 1 decimal place
+  // Convert to a positive number first so that rounding goes from 1.5 -> 2 (even if negative)
+  val = Math.round(Math.abs(val) * 10) / 10;
+  val *= multiplier;
   let valStr = val.toFixed(1);
 
   // Remove tailing zero

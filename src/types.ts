@@ -1,3 +1,5 @@
+import type { Context } from "@actions/github/lib/context";
+
 export type Inputs = {
   coveragePath: string;
   baseCoveragePath: string;
@@ -6,6 +8,7 @@ export type Inputs = {
   title: string;
   customMessage: string;
   stripPathPrefix: string;
+  context: Context;
 };
 
 export type CoverageSummary = Record<string, CoverageSection>;
@@ -32,7 +35,7 @@ export type DiffSummary = {
   statements: CoverageDiff;
   functions: CoverageDiff;
   branches: CoverageDiff;
-  isNewFile: boolean;
+  isNewFile?: boolean;
 };
 
 export type CoverageDiff = {

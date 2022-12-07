@@ -26734,7 +26734,7 @@ exports.generateDiffReport = void 0;
 /**
  * Generate a diff summary of two coverage files.
  */
-function generateDiffReport(coverage, baseCoverage, inputs) {
+function generateDiffReport(coverage, baseCoverage) {
     const diffReport = {};
     // Generate diff for each file
     Object.keys(coverage).map((key) => {
@@ -26894,6 +26894,7 @@ function loadInputs() {
         title: core.getInput("title"),
         customMessage: core.getInput("custom-message"),
         stripPathPrefix: core.getInput("strip-path-prefix") || pwd,
+        context: github.context,
     };
 }
 /**
@@ -26909,7 +26910,7 @@ async function main() {
             (0, fileLoader_1.loadCoverageFile)(inputs.baseCoveragePath),
         ]);
         // Generate diff report
-        const diff = (0, diff_1.generateDiffReport)(coverage, baseCoverage, inputs);
+        const diff = (0, diff_1.generateDiffReport)(coverage, baseCoverage);
         const failed = diff.coverageFileFailurePercent !== null;
         // Generate template
         const output = (0, output_1.generateOutput)(diff, inputs);
@@ -27004,7 +27005,7 @@ function getTemplateVars(report, inputs) {
         },
         title: inputs.title,
         customMessage: inputs.customMessage,
-        prNumber: github.context.issue.number,
+        prNumber: inputs.context.issue.number,
         prIdentifier: PR_COMMENT_IDENTIFIER,
         renderFileSummary,
     };
@@ -27033,7 +27034,7 @@ function getTemplateVars(report, inputs) {
         };
         NUMBER_SUMMARY_KEYS.forEach((type) => {
             const value = summary[type].percent;
-            tmplFileSummary[type].percent = Number(value).toLocaleString();
+            tmplFileSummary[type].percent = decimalToString(value);
             tmplFileSummary[type].diff = decimalToString(summary[type].diff);
             // Does this file coverage fall under the fail delta?
             if (value < failDelta && value < coverageFileFailurePercent) {
@@ -27052,7 +27053,7 @@ function getTemplateVars(report, inputs) {
     if (report.total) {
         tmplVars.total = {
             lines: Number(report.total.lines.total).toLocaleString(),
-            percent: Number(report.total.lines.percent).toLocaleString(),
+            percent: decimalToString(report.total.lines.percent),
             diff: decimalToString(report.total.lines.diff),
         };
     }
@@ -27066,8 +27067,11 @@ exports.getTemplateVars = getTemplateVars;
  * Format a decimal percent number to a string percent
  */
 function decimalToString(val) {
-    // Found to 1 decimal place
-    val = Math.round(val * 10) / 10;
+    const multiplier = val < 0 ? -1 : 1;
+    // Round to 1 decimal place
+    // Convert to a positive number first so that rounding goes from 1.5 -> 2 (even if negative)
+    val = Math.round(Math.abs(val) * 10) / 10;
+    val *= multiplier;
     let valStr = val.toFixed(1);
     // Remove tailing zero
     valStr = valStr.replace(/\.0$/, "");

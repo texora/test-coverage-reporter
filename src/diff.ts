@@ -1,5 +1,4 @@
 import {
-  Inputs,
   DiffReport,
   CoverageSummary,
   CoverageSection,
@@ -11,8 +10,7 @@ import {
  */
 export function generateDiffReport(
   coverage: CoverageSummary,
-  baseCoverage: CoverageSummary,
-  inputs: Inputs
+  baseCoverage: CoverageSummary
 ): DiffReport {
   const diffReport: DiffReport = {};
 
