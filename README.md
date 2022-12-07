@@ -6,6 +6,8 @@ will merge into.
 ![Screenshot](./screenshot_dark.png#gh-dark-mode-only)
 ![Screenshot](./screenshot_light.png#gh-light-mode-only)
 
+## Usage
+
 ```
 - name: Generate report
   uses: jgillick/test-coverage-reporter@main
@@ -40,6 +42,11 @@ You can easily see how this PR will either add or remove coverage from the branc
 See a full example in this [repos workflow](./.github/workflows/test.yml).
 
 For larger test suites, it can be more performant to save the base coverage to a longer-lived artifact and use an action like [actions-download-artifact](https://github.com/jgillick/actions-download-artifact) to download it.
+
+## Also try
+
+You might also like the [Test Coverage Annotations](https://github.com/marketplace/actions/test-coverage-annotations) action, which makes it easier to see which lines are lacking test coverage.
+![Test Coverage Annotation Screenshot](./screenshot_annotation.png)
 
 ## Acknowledgements
 
