@@ -50,7 +50,7 @@ export async function main() {
     const output = generateOutput(diff, inputs);
 
     // Outputs
-    console.log("Output");
+    console.log("Output summary");
     await createSummary(output, failed, inputs);
     await createPRComment(output, inputs);
 

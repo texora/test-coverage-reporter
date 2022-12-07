@@ -26922,7 +26922,7 @@ async function main() {
         console.log("Generating summary");
         const output = (0, output_1.generateOutput)(diff, inputs);
         // Outputs
-        console.log("Output");
+        console.log("Output summary");
         await (0, output_1.createSummary)(output, failed, inputs);
         await (0, output_1.createPRComment)(output, inputs);
         if (failed) {
@@ -27149,11 +27149,12 @@ function createSummary(output, failed, inputs) {
     return client.rest.checks.create({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        name: "Test Coverage Report Summary",
+        name: "test-coverage",
         head_sha: head,
         status: "completed",
         conclusion: failed ? "failure" : "success",
         output: {
+            title: "Test Coverage Report Summary",
             summary: output,
         },
     });

@@ -223,11 +223,12 @@ export function createSummary(output: string, failed: boolean, inputs: Inputs) {
   return client.rest.checks.create({
     owner: github.context.repo.owner,
     repo: github.context.repo.repo,
-    name: "Test Coverage Report Summary",
+    name: "test-coverage",
     head_sha: head,
     status: "completed",
     conclusion: failed ? "failure" : "success",
     output: {
+      title: "Test Coverage Report Summary",
       summary: output,
     },
   });
