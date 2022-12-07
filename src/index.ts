@@ -35,6 +35,7 @@ export async function main() {
     console.log(github.context);
 
     // Get coverage
+    console.log("Loading coverage files");
     const coverage = await loadCoverageFile(inputs.coveragePath);
     let baseCoverage = {};
     if (inputs.baseCoveragePath?.length) {
@@ -42,13 +43,16 @@ export async function main() {
     }
 
     // Generate diff report
+    console.log("Generating diff report");
     const diff = generateDiffReport(coverage, baseCoverage, inputs);
     const failed = diff.coverageFileFailurePercent !== null;
 
     // Generate template
+    console.log("Generating summary");
     const output = generateOutput(diff, inputs);
 
     // Outputs
+    console.log("Output");
     await createSummary(output, failed, inputs);
     await createPRComment(output, inputs);
 

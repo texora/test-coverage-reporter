@@ -71,7 +71,7 @@ export function getTemplateVars(
     commitUrl,
     prIdentifier: PR_COMMENT_IDENTIFIER,
 
-    renderFileSummary,
+    renderFileSummary: renderFileSummaryFactory(inputs),
   };
   const { stripPathPrefix } = inputs;
   const failDelta =
@@ -232,33 +232,36 @@ export function createSummary(output: string, failed: boolean, inputs: Inputs) {
 /**
  * Create the markdown for a filepath row
  */
-function renderFileSummary(file: TemplateDiffSummary) {
-  const linePercent = Number(file.lines.percent);
+function renderFileSummaryFactory(inputs: Inputs) {
+  const hasDiffs = inputs.baseCoveragePath?.length > 0;
+  return function renderFileSummary(file: TemplateDiffSummary) {
+    const linePercent = Number(file.lines.percent);
 
-  let status = ":red_circle:";
-  if (linePercent > 80) {
-    status = ":green_circle:";
-  } else if (linePercent > 40) {
-    status = ":yellow_circle:";
-  }
-
-  if (file.isNewFile) {
-    status += ":new:";
-  }
-
-  const itemOutput = (item: TemplateDiffSummaryValues) => {
-    let itemOut = `${item.percent}%`;
-    if (item.diff !== "0") {
-      itemOut += ` (${item.diff})`;
+    let status = ":red_circle:";
+    if (linePercent > 80) {
+      status = ":green_circle:";
+    } else if (linePercent > 40) {
+      status = ":yellow_circle:";
     }
-    return itemOut;
-  };
 
-  return (
-    `| ${status} ${file.filepath} ` +
-    `| ${itemOutput(file.statements)} ` +
-    `| ${itemOutput(file.branches)} ` +
-    `| ${itemOutput(file.functions)} ` +
-    `| ${itemOutput(file.lines)}`
-  );
+    if (file.isNewFile && hasDiffs) {
+      status += ":new:";
+    }
+
+    const itemOutput = (item: TemplateDiffSummaryValues) => {
+      let itemOut = `${item.percent}%`;
+      if (hasDiffs && item.diff !== "0") {
+        itemOut += ` (${item.diff})`;
+      }
+      return itemOut;
+    };
+
+    return (
+      `| ${status} ${file.filepath} ` +
+      `| ${itemOutput(file.statements)} ` +
+      `| ${itemOutput(file.branches)} ` +
+      `| ${itemOutput(file.functions)} ` +
+      `| ${itemOutput(file.lines)}`
+    );
+  };
 }

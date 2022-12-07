@@ -1,4 +1,4 @@
-/******/ (() => { // webpackBootstrap
+require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 7351:
@@ -26836,11 +26836,11 @@ exports.loadCoverageFile = loadCoverageFile;
  * Convert coverage report from traditional istanbul format to summary
  */
 async function makeCoverageSummary(fromFilepath) {
-    console.log("Creating coverage summary.");
+    console.log("Converting coverage file to json-summary");
     const command = `npx istanbul report --include="${fromFilepath}" json-summary`;
     console.log(command);
     const stdout = (0, child_process_1.execSync)(command);
-    console.log(stdout);
+    console.log(stdout.toString());
     const json = await loadJSONFile("./coverage/coverage-summary.json");
     return json;
 }
@@ -26909,17 +26909,21 @@ async function main() {
         const inputs = loadInputs();
         console.log(github.context);
         // Get coverage
+        console.log("Loading coverage files");
         const coverage = await (0, fileLoader_1.loadCoverageFile)(inputs.coveragePath);
         let baseCoverage = {};
         if ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) {
             baseCoverage = await (0, fileLoader_1.loadCoverageFile)(inputs.baseCoveragePath);
         }
         // Generate diff report
+        console.log("Generating diff report");
         const diff = (0, diff_1.generateDiffReport)(coverage, baseCoverage, inputs);
         const failed = diff.coverageFileFailurePercent !== null;
         // Generate template
+        console.log("Generating summary");
         const output = (0, output_1.generateOutput)(diff, inputs);
         // Outputs
+        console.log("Output");
         await (0, output_1.createSummary)(output, failed, inputs);
         await (0, output_1.createPRComment)(output, inputs);
         if (failed) {
@@ -27019,7 +27023,7 @@ function getTemplateVars(report, inputs) {
         commitSha,
         commitUrl,
         prIdentifier: PR_COMMENT_IDENTIFIER,
-        renderFileSummary,
+        renderFileSummary: renderFileSummaryFactory(inputs),
     };
     const { stripPathPrefix } = inputs;
     const failDelta = inputs.failDelta > 0 ? inputs.failDelta * -1 : inputs.failDelta;
@@ -27154,30 +27158,34 @@ exports.createSummary = createSummary;
 /**
  * Create the markdown for a filepath row
  */
-function renderFileSummary(file) {
-    const linePercent = Number(file.lines.percent);
-    let status = ":red_circle:";
-    if (linePercent > 80) {
-        status = ":green_circle:";
-    }
-    else if (linePercent > 40) {
-        status = ":yellow_circle:";
-    }
-    if (file.isNewFile) {
-        status += ":new:";
-    }
-    const itemOutput = (item) => {
-        let itemOut = `${item.percent}%`;
-        if (item.diff !== "0") {
-            itemOut += ` (${item.diff})`;
+function renderFileSummaryFactory(inputs) {
+    var _a;
+    const hasDiffs = ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) > 0;
+    return function renderFileSummary(file) {
+        const linePercent = Number(file.lines.percent);
+        let status = ":red_circle:";
+        if (linePercent > 80) {
+            status = ":green_circle:";
         }
-        return itemOut;
+        else if (linePercent > 40) {
+            status = ":yellow_circle:";
+        }
+        if (file.isNewFile && hasDiffs) {
+            status += ":new:";
+        }
+        const itemOutput = (item) => {
+            let itemOut = `${item.percent}%`;
+            if (hasDiffs && item.diff !== "0") {
+                itemOut += ` (${item.diff})`;
+            }
+            return itemOut;
+        };
+        return (`| ${status} ${file.filepath} ` +
+            `| ${itemOutput(file.statements)} ` +
+            `| ${itemOutput(file.branches)} ` +
+            `| ${itemOutput(file.functions)} ` +
+            `| ${itemOutput(file.lines)}`);
     };
-    return (`| ${status} ${file.filepath} ` +
-        `| ${itemOutput(file.statements)} ` +
-        `| ${itemOutput(file.branches)} ` +
-        `| ${itemOutput(file.functions)} ` +
-        `| ${itemOutput(file.lines)}`);
 }
 
 
@@ -27386,3 +27394,4 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	
 /******/ })()
 ;
+//# sourceMappingURL=index.js.map

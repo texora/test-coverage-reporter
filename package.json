@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "test": "yarn jest",
-    "build": "rm -r ./dist; yarn ncc build src/index.ts -o dist; cp -v src/*.md dist/"
+    "build": "rm -r ./dist; yarn ncc build src/index.ts -o dist --source-map; cp -v src/*.md dist/"
   },
   "repository": {
     "type": "git",
