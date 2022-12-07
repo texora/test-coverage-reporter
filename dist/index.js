@@ -26907,7 +26907,6 @@ async function main() {
     var _a;
     try {
         const inputs = loadInputs();
-        console.log(github.context);
         // Get coverage
         console.log("Loading coverage files");
         const coverage = await (0, fileLoader_1.loadCoverageFile)(inputs.coveragePath);

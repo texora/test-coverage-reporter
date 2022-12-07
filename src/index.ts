@@ -32,8 +32,6 @@ export async function main() {
   try {
     const inputs = loadInputs();
 
-    console.log(github.context);
-
     // Get coverage
     console.log("Loading coverage files");
     const coverage = await loadCoverageFile(inputs.coveragePath);
