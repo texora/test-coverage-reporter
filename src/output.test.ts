@@ -120,11 +120,12 @@ describe("output", () => {
         ],
         unchanged: [],
         total: {
-          name: "total",
+          name: "Total",
           lines: { diff: "-12.2", percent: "82.1" },
           branches: { diff: "2.3", percent: "85" },
           functions: { diff: "2.3", percent: "85" },
           statements: { diff: "2.3", percent: "85" },
+          isNewFile: undefined,
         },
         failed: false,
         hasDiffs: true,
