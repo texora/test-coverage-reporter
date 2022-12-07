@@ -3,8 +3,7 @@
 A github action that generates a comprehensive unit test coverage, including optional coverage diff with the branch the PR
 will merge into.
 
-![Screenshot](./screenshot_dark.png#gh-dark-mode-only)
-![Screenshot](./screenshot_light.png#gh-light-mode-only)
+![Screenshot](./screenshot_light.png)
 
 ## Usage
 
