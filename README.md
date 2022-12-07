@@ -10,7 +10,7 @@ will merge into.
 
 ```
 - name: Generate report
-  uses: jgillick/test-coverage-reporter@main
+  uses: jgillick/test-coverage-reporter@v1
   with:
     coverage-file: coverage/coverage-final.json
     access-token: ${{ secrets.GITHUB_TOKEN }}
@@ -32,7 +32,7 @@ You can easily see how this PR will either add or remove coverage from the branc
 
 ```
 - name: Generate report
-  uses: jgillick/test-coverage-reporter@main
+  uses: jgillick/test-coverage-reporter@v1
   with:
     coverage-file: coverage/coverage-final.json
     base-coverage-file: main-branch/coverage/coverage-final.json
@@ -46,6 +46,7 @@ For larger test suites, it can be more performant to save the base coverage to a
 ## Also try
 
 You might also like the [Test Coverage Annotations](https://github.com/marketplace/actions/test-coverage-annotations) action, which makes it easier to see which lines are lacking test coverage.
+
 ![Test Coverage Annotation Screenshot](./screenshot_annotation.png)
 
 ## Acknowledgements
