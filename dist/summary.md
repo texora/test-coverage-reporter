@@ -3,24 +3,17 @@
 ## <%= title %>
 
 <% if (failed) { %>
-:white_check_mark: **Passed**
-<% } else { %>
 :x: **Failed**
 {failureMessage}
 
+<% } else { %>
+:white_check_mark: **Passed**
 <% } %>
-Commit: [<%= commitSha.substring(0, 7) %>](commitUrl)
+Commit: [<%= commitSha.substring(0, 7) %>](<%= commitUrl %>)
 
 <% if(customMessage) { %>
 <%= customMessage %>
 <% } %>
-
-<!-- Totals -->
-
-| Total | <%= total.percent %>% |
-| :---------------- | --------------------: | <%
-if (!hasDiffs){ %>| Change from base: | <%= total.diff %>% |
-<% } %>| Total Lines: | <%= total.lines %> |
 
 <!-- All files, if diffs aren't present -->
 
@@ -31,9 +24,9 @@ if (!hasDiffs){ %>| Change from base: | <%= total.diff %>% |
 All files
 </summary>
 
-| File | Stmts | Branch | Funcs | Lines |
-| ---- | ----- | ------ | ----- | ----- | <%=
-renderFileSummary(total) %><%
+| Name | Stmts | Branch | Funcs | Lines |
+| ---- | ----- | ------ | ----- | ----- | 
+<%= renderFileSummary(total) %><%
 all.forEach((fileSummary) => { print(renderFileSummary(fileSummary))
 }) %>
 
@@ -44,10 +37,10 @@ all.forEach((fileSummary) => { print(renderFileSummary(fileSummary))
 
 <% if (changed.length){ %>
 
-| File | Stmts | Branch | Funcs | Lines |
-| ---- | ----- | ------ | ----- | ----- | <%=
-renderFileSummary(total) %><%
-changed.forEach((fileSummary) => { renderFileSummary(fileSummary)
+| Name | Stmts | Branch | Funcs | Lines |
+| ---- | ----- | ------ | ----- | ----- | 
+<%= renderFileSummary(total) %><%
+changed.forEach((fileSummary) => { print(renderFileSummary(fileSummary))
 }) %>
 <% } %>
 
@@ -60,9 +53,9 @@ changed.forEach((fileSummary) => { renderFileSummary(fileSummary)
 All other files
 </summary>
 
-| File | Stmts | Branch | Funcs | Lines |
+| Name | Stmts | Branch | Funcs | Lines |
 | ---- | ----- | ------ | ----- | ----- |<%
-unchanged.forEach((fileSummary) => { renderFileSummary(fileSummary)
+unchanged.forEach((fileSummary) => { print(renderFileSummary(fileSummary))
 }) %>
 
 </details>
