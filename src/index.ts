@@ -14,13 +14,14 @@ function loadInputs(): Inputs {
   const pwd = execSync("pwd").toString().trim();
 
   return {
-    accessToken: core.getInput("access-token"),
-    coveragePath: core.getInput("coverage-file"),
+    accessToken: core.getInput("access-token", { required: true }),
+    coveragePath: core.getInput("coverage-file", { required: true }),
     baseCoveragePath: core.getInput("base-coverage-file"),
     failDelta: Number(core.getInput("fail-delta")),
     title: core.getInput("title"),
     customMessage: core.getInput("custom-message"),
     stripPathPrefix: core.getInput("strip-path-prefix") || pwd,
+    context: github.context,
   };
 }
 
@@ -31,29 +32,37 @@ export async function main() {
   try {
     const inputs = loadInputs();
 
-    console.log(github.context);
-
     // Get coverage
-    const [coverage, baseCoverage] = await Promise.all([
-      loadCoverageFile(inputs.coveragePath),
-      loadCoverageFile(inputs.baseCoveragePath),
-    ]);
+    console.log("Loading coverage files");
+    const coverage = await loadCoverageFile(inputs.coveragePath);
+    let baseCoverage = {};
+    if (inputs.baseCoveragePath?.length) {
+      baseCoverage = await loadCoverageFile(inputs.baseCoveragePath);
+    }
 
     // Generate diff report
+    console.log("Generating diff report");
     const diff = generateDiffReport(coverage, baseCoverage, inputs);
-    const failed = diff.coverageFileFailurePercent !== null;
+
+    // Check for PR failure
+    const failed = Math.abs(diff.biggestDiff) >= inputs.failDelta;
+    const failureMessage = failed
+      ? `The coverage is reduced by at least ${Math.abs(
+          diff.biggestDiff
+        )}% for one or more files.`
+      : null;
 
     // Generate template
-    const output = generateOutput(diff, inputs);
+    console.log("Generating summary");
+    const output = generateOutput(diff, failureMessage, inputs);
 
     // Outputs
+    console.log("Output summary");
     await createSummary(output, failed, inputs);
     await createPRComment(output, inputs);
 
-    if (failed) {
-      core.setFailed(
-        `The coverage is reduced by at least ${diff.coverageFileFailurePercent}% for one or more files.`
-      );
+    if (failureMessage) {
+      core.setFailed(failureMessage);
     }
   } catch (error) {
     console.error(error);

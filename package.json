@@ -1,11 +1,11 @@
 {
   "name": "test-coverage-reporter",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Generate a test coverage report for a PR",
   "main": "dist/index.js",
   "scripts": {
     "test": "yarn jest",
-    "build": "rm -r ./dist; yarn ncc build src/index.ts -o dist; cp -v src/*.md dist/"
+    "build": "rm -r ./dist; yarn ncc build src/index.ts -o dist --source-map; cp -v src/*.md dist/"
   },
   "repository": {
     "type": "git",

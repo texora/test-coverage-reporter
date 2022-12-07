@@ -1,3 +1,5 @@
+import type { Context } from "@actions/github/lib/context";
+
 export type Inputs = {
   coveragePath: string;
   baseCoveragePath: string;
@@ -6,6 +8,7 @@ export type Inputs = {
   title: string;
   customMessage: string;
   stripPathPrefix: string;
+  context: Context;
 };
 
 export type CoverageSummary = Record<string, CoverageSection>;
@@ -25,14 +28,17 @@ export type CoverageTypeSummary = {
   pct: number;
 };
 
-export type DiffReport = Record<string, DiffSummary>;
+export type DiffReport = {
+  biggestDiff: number;
+  sections: Record<string, DiffSummary>;
+};
 
 export type DiffSummary = {
   lines: CoverageDiff;
   statements: CoverageDiff;
   functions: CoverageDiff;
   branches: CoverageDiff;
-  isNewFile: boolean;
+  isNewFile?: boolean;
 };
 
 export type CoverageDiff = {
@@ -45,12 +51,16 @@ export type TemplateVars = {
   title: string;
   customMessage: string;
   prIdentifier: string;
-  prNumber: number;
+  commitSha: number;
+  commitUrl: string;
+  hasDiffs: boolean;
 
-  coverageFileFailurePercent: string | null;
-  total: TemplateDiffTotals;
+  failed: boolean;
+  failureMessage: string | null;
+  total: TemplateDiffSummary;
   changed: TemplateDiffSummary[];
   unchanged: TemplateDiffSummary[];
+  all: TemplateDiffSummary[];
 
   renderFileSummary: Function;
 };
@@ -62,7 +72,7 @@ export type TemplateDiffTotals = {
 };
 
 export type TemplateDiffSummary = {
-  filepath: string;
+  name: string;
   lines: TemplateDiffSummaryValues;
   statements: TemplateDiffSummaryValues;
   functions: TemplateDiffSummaryValues;

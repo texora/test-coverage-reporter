@@ -1,4 +1,4 @@
-/******/ (() => { // webpackBootstrap
+require('./sourcemap-register.js');/******/ (() => { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
 /***/ 7351:
@@ -26735,22 +26735,30 @@ exports.generateDiffReport = void 0;
  * Generate a diff summary of two coverage files.
  */
 function generateDiffReport(coverage, baseCoverage, inputs) {
-    const diffReport = {};
+    var _a;
+    const diffReport = {
+        biggestDiff: 0,
+        sections: {},
+    };
+    const hasBaseCoverage = ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) > 0;
     // Generate diff for each file
     Object.keys(coverage).map((key) => {
         const target = coverage[key] || {};
         const base = baseCoverage[key] || {};
-        const isNewFile = key !== "total" &&
+        const isNewFile = hasBaseCoverage &&
+            key !== "total" &&
             typeof target.lines !== "undefined" &&
             typeof base.lines === "undefined";
         // Generate delta
-        diffReport[key] = {
+        const section = {
             isNewFile,
             lines: generateDiff("lines", target, base),
             statements: generateDiff("statements", target, base),
             functions: generateDiff("functions", target, base),
             branches: generateDiff("branches", target, base),
         };
+        diffReport.sections[key] = section;
+        diffReport.biggestDiff = Math.min(diffReport.biggestDiff, section.lines.diff, section.statements.diff, section.functions.diff, section.branches.diff);
     });
     return diffReport;
 }
@@ -26760,18 +26768,18 @@ exports.generateDiffReport = generateDiffReport;
  */
 function generateDiff(type, target, base) {
     var _a;
-    const targetVal = getVal(target, type);
-    const baseVal = getVal(base, type);
+    const targetPercent = getPercent(target, type);
+    const basePercent = getPercent(base, type);
     return {
-        percent: targetVal,
-        diff: targetVal - baseVal,
+        percent: targetPercent,
+        diff: targetPercent - basePercent,
         total: ((_a = target[type]) === null || _a === void 0 ? void 0 : _a.total) || 0,
     };
 }
 /**
  * Return the percent value from a summary section type
  */
-function getVal(section, type) {
+function getPercent(section, type) {
     const summary = section[type];
     if (typeof summary === "object" && typeof summary.pct === "number") {
         return summary.pct;
@@ -26833,11 +26841,11 @@ exports.loadCoverageFile = loadCoverageFile;
  * Convert coverage report from traditional istanbul format to summary
  */
 async function makeCoverageSummary(fromFilepath) {
-    console.log("Creating coverage summary.");
+    console.log("Converting coverage file to json-summary");
     const command = `npx istanbul report --include="${fromFilepath}" json-summary`;
     console.log(command);
     const stdout = (0, child_process_1.execSync)(command);
-    console.log(stdout);
+    console.log(stdout.toString());
     const json = await loadJSONFile("./coverage/coverage-summary.json");
     return json;
 }
@@ -26887,37 +26895,47 @@ const output_1 = __nccwpck_require__(5768);
 function loadInputs() {
     const pwd = (0, child_process_1.execSync)("pwd").toString().trim();
     return {
-        accessToken: core.getInput("access-token"),
-        coveragePath: core.getInput("coverage-file"),
+        accessToken: core.getInput("access-token", { required: true }),
+        coveragePath: core.getInput("coverage-file", { required: true }),
         baseCoveragePath: core.getInput("base-coverage-file"),
         failDelta: Number(core.getInput("fail-delta")),
         title: core.getInput("title"),
         customMessage: core.getInput("custom-message"),
         stripPathPrefix: core.getInput("strip-path-prefix") || pwd,
+        context: github.context,
     };
 }
 /**
  * The entrypoint for the program
  */
 async function main() {
+    var _a;
     try {
         const inputs = loadInputs();
-        console.log(github.context);
         // Get coverage
-        const [coverage, baseCoverage] = await Promise.all([
-            (0, fileLoader_1.loadCoverageFile)(inputs.coveragePath),
-            (0, fileLoader_1.loadCoverageFile)(inputs.baseCoveragePath),
-        ]);
+        console.log("Loading coverage files");
+        const coverage = await (0, fileLoader_1.loadCoverageFile)(inputs.coveragePath);
+        let baseCoverage = {};
+        if ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) {
+            baseCoverage = await (0, fileLoader_1.loadCoverageFile)(inputs.baseCoveragePath);
+        }
         // Generate diff report
+        console.log("Generating diff report");
         const diff = (0, diff_1.generateDiffReport)(coverage, baseCoverage, inputs);
-        const failed = diff.coverageFileFailurePercent !== null;
+        // Check for PR failure
+        const failed = Math.abs(diff.biggestDiff) >= inputs.failDelta;
+        const failureMessage = failed
+            ? `The coverage is reduced by at least ${Math.abs(diff.biggestDiff)}% for one or more files.`
+            : null;
         // Generate template
-        const output = (0, output_1.generateOutput)(diff, inputs);
+        console.log("Generating summary");
+        const output = (0, output_1.generateOutput)(diff, failureMessage, inputs);
         // Outputs
+        console.log("Output summary");
         await (0, output_1.createSummary)(output, failed, inputs);
         await (0, output_1.createPRComment)(output, inputs);
-        if (failed) {
-            core.setFailed(`The coverage is reduced by at least ${diff.coverageFileFailurePercent}% for one or more files.`);
+        if (failureMessage) {
+            core.setFailed(failureMessage);
         }
     }
     catch (error) {
@@ -26983,82 +27001,90 @@ const PR_COMMENT_IDENTIFIER = "<!-- test-coverage-reporter-output -->";
 /**
  * Generate the coverage summary output
  */
-function generateOutput(report, inputs) {
-    const tmplContent = (0, fileLoader_1.loadFile)(TMPL_FILE_PATH);
-    const tmplVars = getTemplateVars(report, inputs);
-    return (0, lodash_1.template)(tmplContent)(tmplVars);
+function generateOutput(report, failureMessage, inputs) {
+    try {
+        const tmplContent = (0, fileLoader_1.loadFile)(TMPL_FILE_PATH);
+        const tmplVars = getTemplateVars(report, failureMessage, inputs);
+        return (0, lodash_1.template)(tmplContent)(tmplVars);
+    }
+    catch (error) {
+        throw new Error(`Template error: ${error.message}`);
+    }
 }
 exports.generateOutput = generateOutput;
 /**
  * Create template variables
  */
-function getTemplateVars(report, inputs) {
+function getTemplateVars(report, failureMessage, inputs) {
+    var _a, _b, _c, _d;
+    const hasDiffs = ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) > 0;
+    const commitSha = ((_c = (_b = inputs.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.head) === null || _c === void 0 ? void 0 : _c.sha) || github.context.sha;
+    const commitUrl = `${(_d = inputs.context.payload.repository) === null || _d === void 0 ? void 0 : _d.html_url}/commits/${commitSha}`;
     const tmplVars = {
-        coverageFileFailurePercent: null,
+        failureMessage,
+        failed: failureMessage !== null,
         changed: [],
         unchanged: [],
+        all: [],
         total: {
-            lines: "0",
-            diff: "0",
-            percent: "0",
+            name: "total",
+            lines: { percent: "0", diff: "0" },
+            statements: { percent: "0", diff: "0" },
+            functions: { percent: "0", diff: "0" },
+            branches: { percent: "0", diff: "0" },
         },
+        hasDiffs,
         title: inputs.title,
         customMessage: inputs.customMessage,
-        prNumber: github.context.issue.number,
+        commitSha,
+        commitUrl,
         prIdentifier: PR_COMMENT_IDENTIFIER,
-        renderFileSummary,
+        renderFileSummary: renderFileSummaryFactory(inputs),
     };
     const { stripPathPrefix } = inputs;
     const failDelta = inputs.failDelta > 0 ? inputs.failDelta * -1 : inputs.failDelta;
     // Process all the file deltas
     let coverageFileFailurePercent = 0;
-    Object.entries(report).forEach(([key, summary]) => {
-        if (key === "total") {
-            return;
-        }
+    Object.entries(report.sections).forEach(([key, summary]) => {
         // Strip path prefix and add to report
-        let filepath = key;
-        if (stripPathPrefix && filepath.indexOf(stripPathPrefix) === 0) {
-            filepath = filepath.substring(stripPathPrefix.length);
+        let name = key;
+        if (stripPathPrefix && name.indexOf(stripPathPrefix) === 0) {
+            name = name.substring(stripPathPrefix.length);
         }
         let hasChange = false;
-        const defaultNums = { percent: "0", diff: "0" };
         const tmplFileSummary = {
-            filepath,
+            name,
             isNewFile: summary.isNewFile,
-            lines: defaultNums,
-            statements: defaultNums,
-            functions: defaultNums,
-            branches: defaultNums,
+            lines: { percent: "0", diff: "0" },
+            statements: { percent: "0", diff: "0" },
+            functions: { percent: "0", diff: "0" },
+            branches: { percent: "0", diff: "0" },
         };
         NUMBER_SUMMARY_KEYS.forEach((type) => {
-            const value = summary[type].percent;
-            tmplFileSummary[type].percent = Number(value).toLocaleString();
-            tmplFileSummary[type].diff = decimalToString(summary[type].diff);
+            const percent = summary[type].percent;
+            const diff = summary[type].diff;
+            tmplFileSummary[type].percent = decimalToString(percent);
+            tmplFileSummary[type].diff = decimalToString(diff);
             // Does this file coverage fall under the fail delta?
-            if (value < failDelta && value < coverageFileFailurePercent) {
-                coverageFileFailurePercent = value;
+            if (diff < failDelta && diff < coverageFileFailurePercent) {
+                coverageFileFailurePercent = diff;
             }
             // If the coverage changed by more than 0.1, add file to the changed bucket
-            if (!hasChange && Math.abs(value) >= MIN_CHANGE) {
+            if (!hasChange && Math.abs(diff) >= MIN_CHANGE) {
                 hasChange = true;
             }
         });
         // Add to file bucket
-        const bucket = hasChange ? "changed" : "unchanged";
-        tmplVars[bucket].push(tmplFileSummary);
+        if (key === "total") {
+            tmplFileSummary.name = "Total";
+            tmplVars.total = tmplFileSummary;
+        }
+        else {
+            const bucket = hasChange ? "changed" : "unchanged";
+            tmplVars[bucket].push(tmplFileSummary);
+            tmplVars.all.push(tmplFileSummary);
+        }
     });
-    // Process totals
-    if (report.total) {
-        tmplVars.total = {
-            lines: Number(report.total.lines.total).toLocaleString(),
-            percent: Number(report.total.lines.percent).toLocaleString(),
-            diff: decimalToString(report.total.lines.diff),
-        };
-    }
-    if (coverageFileFailurePercent !== 0) {
-        tmplVars.coverageFileFailurePercent = decimalToString(Math.abs(coverageFileFailurePercent));
-    }
     return tmplVars;
 }
 exports.getTemplateVars = getTemplateVars;
@@ -27066,8 +27092,11 @@ exports.getTemplateVars = getTemplateVars;
  * Format a decimal percent number to a string percent
  */
 function decimalToString(val) {
-    // Found to 1 decimal place
-    val = Math.round(val * 10) / 10;
+    const multiplier = val < 0 ? -1 : 1;
+    // Round to 1 decimal place
+    // Convert to a positive number first so that rounding goes from 1.5 -> 2 (even if negative)
+    val = Math.round(Math.abs(val) * 10) / 10;
+    val *= multiplier;
     let valStr = val.toFixed(1);
     // Remove tailing zero
     valStr = valStr.replace(/\.0$/, "");
@@ -27123,11 +27152,12 @@ function createSummary(output, failed, inputs) {
     return client.rest.checks.create({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        name: "Test Coverage Report Summary",
+        name: "test-coverage",
         head_sha: head,
         status: "completed",
         conclusion: failed ? "failure" : "success",
         output: {
+            title: "Test Coverage Report Summary",
             summary: output,
         },
     });
@@ -27136,30 +27166,37 @@ exports.createSummary = createSummary;
 /**
  * Create the markdown for a filepath row
  */
-function renderFileSummary(file) {
-    const linePercent = Number(file.lines.percent);
-    let status = ":red_circle:";
-    if (linePercent > 80) {
-        status = ":green_circle:";
-    }
-    else if (linePercent > 40) {
-        status = ":yellow_circle:";
-    }
-    if (file.isNewFile) {
-        status += ":new:";
-    }
-    const itemOutput = (item) => {
-        let itemOut = `${item.percent}%`;
-        if (item.diff !== "0") {
-            itemOut += ` (${item.diff})`;
+function renderFileSummaryFactory(inputs) {
+    var _a;
+    const hasDiffs = ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) > 0;
+    return function renderFileSummary(summary) {
+        const linePercent = Number(summary.lines.percent);
+        let status = ":red_circle:";
+        if (linePercent > 80) {
+            status = ":green_circle:";
         }
-        return itemOut;
+        else if (linePercent > 40) {
+            status = ":yellow_circle:";
+        }
+        const formatText = (text) => {
+            if (summary.name === "Total") {
+                return `**${text}**`;
+            }
+            return text;
+        };
+        const itemOutput = (item) => {
+            let itemOut = `${item.percent}%`;
+            if (hasDiffs && item.diff !== "0") {
+                itemOut += ` (${item.diff})`;
+            }
+            return formatText(itemOut);
+        };
+        return (`| ${status} ${formatText(summary.name)} ` +
+            `| ${itemOutput(summary.statements)} ` +
+            `| ${itemOutput(summary.branches)} ` +
+            `| ${itemOutput(summary.functions)} ` +
+            `| ${itemOutput(summary.lines)}`);
     };
-    return (`| ${status} ${file.filepath} ` +
-        `| ${itemOutput(file.statements)} ` +
-        `| ${itemOutput(file.branches)} ` +
-        `| ${itemOutput(file.functions)} ` +
-        `| ${itemOutput(file.lines)}`);
 }
 
 
@@ -27368,3 +27405,4 @@ module.exports = JSON.parse('[[[0,44],"disallowed_STD3_valid"],[[45,46],"valid"]
 /******/ 	
 /******/ })()
 ;
+//# sourceMappingURL=index.js.map

@@ -1,0 +1,85 @@
+name: Unit Tests
+on:
+  pull_request:
+    paths:
+      - "src/**"
+
+jobs:
+  #
+  # Run unit tests on PR branch
+  #
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run tests
+        run: yarn test --coverage
+
+      - name: Save coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: pr-coverage
+          path: coverage/
+          retention-days: 1
+
+  #
+  # Get coverage on base branch by running tests.
+  # This isn't very efficient for large test suites,
+  # in that case consider using long-lived artifacts.
+  #
+  baseCoverage:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: main
+
+      - name: Install dependencies
+        run: yarn install
+
+      - name: Run tests
+        run: yarn test --coverage
+
+      - name: Save coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: base-coverage
+          path: coverage/
+          retention-days: 1
+
+  #
+  # Create coverage report
+  #
+  report:
+    runs-on: ubuntu-latest
+    needs: [test, baseCoverage]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Download PR coverage
+        id: prCoverage
+        uses: actions/download-artifact@v3
+        with:
+          name: pr-coverage
+          path: pr-coverage
+
+      - name: Download base coverage
+        id: baseCoverage
+        uses: actions/download-artifact@v3
+        with:
+          name: base-coverage
+          path: base-coverage
+
+      - name: Generate report
+        uses: jgillick/test-coverage-reporter@main
+        with:
+          coverage-file: ${{steps.prCoverage.outputs.download-path}}/coverage-final.json
+          base-coverage-file: ${{steps.baseCoverage.outputs.download-path}}/coverage-final.json
+          access-token: ${{ secrets.GITHUB_TOKEN }}

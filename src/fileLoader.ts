@@ -48,12 +48,12 @@ export async function loadCoverageFile(filepath: string) {
 async function makeCoverageSummary(
   fromFilepath: string
 ): Promise<CoverageSummary> {
-  console.log("Creating coverage summary.");
+  console.log("Converting coverage file to json-summary");
 
   const command = `npx istanbul report --include="${fromFilepath}" json-summary`;
   console.log(command);
   const stdout = execSync(command);
-  console.log(stdout);
+  console.log(stdout.toString());
 
   const json = await loadJSONFile("./coverage/coverage-summary.json");
   return json as CoverageSummary;
