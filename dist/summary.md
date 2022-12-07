@@ -7,7 +7,7 @@
 <% } else { %>
 :x: **Failed**
 <% } %>
-Commit: <%= prNumber.substring(0, 7) %>
+Commit: [<%= commitSha.substring(0, 7) %>](commitUrl)
 
 <% if(customMessage) { %>
 <%= customMessage %>

@@ -26999,7 +26999,7 @@ function generateOutput(report, inputs) {
         return (0, lodash_1.template)(tmplContent)(tmplVars);
     }
     catch (error) {
-        throw new Error(`Error generating template: ${error.message}`);
+        throw new Error(`Template error: ${error.message}`);
     }
 }
 exports.generateOutput = generateOutput;

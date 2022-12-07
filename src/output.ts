@@ -42,7 +42,7 @@ export function generateOutput(report: DiffReport, inputs: Inputs) {
     const tmplVars = getTemplateVars(report, inputs);
     return template(tmplContent)(tmplVars);
   } catch (error) {
-    throw new Error(`Error generating template: ${(error as Error).message}`);
+    throw new Error(`Template error: ${(error as Error).message}`);
   }
 }
 
