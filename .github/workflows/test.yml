@@ -74,13 +74,6 @@ jobs:
           name: base-coverage
           path: base-coverage
 
-      - name: Debug
-        run: |
-          echo "ROOT"
-          ls -al
-          echo "Everything"
-          ls -al *
-
       - name: Generate report
         uses: jgillick/test-coverage-reporter@unit-test-workflow
         with:

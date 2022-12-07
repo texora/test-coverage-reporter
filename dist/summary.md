@@ -4,7 +4,7 @@
 
 <% if (failed) { %>
 :x: **Failed**
-{failureMessage}
+<%= failureMessage %>
 
 <% } else { %>
 :white_check_mark: **Passed**
@@ -26,9 +26,8 @@ All files
 
 | Name | Stmts | Branch | Funcs | Lines |
 | ---- | ----- | ------ | ----- | ----- | 
-<%= renderFileSummary(total) %><%
-all.forEach((fileSummary) => { print(renderFileSummary(fileSummary))
-}) %>
+<%= renderFileSummary(total) %>
+<%= all.map((fileSummary) => renderFileSummary(fileSummary)).join('\n'); %>
 
 </details>
 <% } %>
@@ -39,9 +38,8 @@ all.forEach((fileSummary) => { print(renderFileSummary(fileSummary))
 
 | Name | Stmts | Branch | Funcs | Lines |
 | ---- | ----- | ------ | ----- | ----- | 
-<%= renderFileSummary(total) %><%
-changed.forEach((fileSummary) => { print(renderFileSummary(fileSummary))
-}) %>
+<%= renderFileSummary(total) %>
+<%= changed.map((fileSummary) => renderFileSummary(fileSummary)).join('\n'); %>
 <% } %>
 
 <!-- Unchanged files -->
@@ -54,9 +52,8 @@ All other files
 </summary>
 
 | Name | Stmts | Branch | Funcs | Lines |
-| ---- | ----- | ------ | ----- | ----- |<%
-unchanged.forEach((fileSummary) => { print(renderFileSummary(fileSummary))
-}) %>
+| ---- | ----- | ------ | ----- | ----- |
+<%= unchanged.map((fileSummary) => renderFileSummary(fileSummary)).join('\n'); %>
 
 </details>
 <% } %>

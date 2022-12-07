@@ -127,6 +127,7 @@ export function getTemplateVars(
 
     // Add to file bucket
     if (key === "total") {
+      tmplFileSummary.name = "Total";
       tmplVars.total = tmplFileSummary;
     } else {
       const bucket = hasChange ? "changed" : "unchanged";

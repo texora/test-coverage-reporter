@@ -38,6 +38,18 @@ export function generateDiffReport(
       functions: generateDiff("functions", target, base),
       branches: generateDiff("branches", target, base),
     };
+
+    if (key === "total") {
+      console.log("Base");
+      console.log(base);
+
+      console.log("Target");
+      console.log(target);
+
+      console.log("Diff");
+      console.log(section);
+    }
+
     diffReport.sections[key] = section;
     diffReport.biggestDiff = Math.min(
       diffReport.biggestDiff,
@@ -59,12 +71,12 @@ function generateDiff(
   target: CoverageSection,
   base: CoverageSection
 ): CoverageDiff {
-  const targetVal = getVal(target, type);
-  const baseVal = getVal(base, type);
+  const targetPercent = getPercent(target, type);
+  const basePercent = getPercent(base, type);
 
   return {
-    percent: targetVal,
-    diff: targetVal - baseVal,
+    percent: targetPercent,
+    diff: targetPercent - basePercent,
     total: target[type]?.total || 0,
   };
 }
@@ -72,7 +84,10 @@ function generateDiff(
 /**
  * Return the percent value from a summary section type
  */
-function getVal(section: CoverageSection, type: keyof CoverageSection): number {
+function getPercent(
+  section: CoverageSection,
+  type: keyof CoverageSection
+): number {
   const summary = section[type];
   if (typeof summary === "object" && typeof summary.pct === "number") {
     return summary.pct;

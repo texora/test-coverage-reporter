@@ -26757,6 +26757,14 @@ function generateDiffReport(coverage, baseCoverage, inputs) {
             functions: generateDiff("functions", target, base),
             branches: generateDiff("branches", target, base),
         };
+        if (key === "total") {
+            console.log("Base");
+            console.log(base);
+            console.log("Target");
+            console.log(target);
+            console.log("Diff");
+            console.log(section);
+        }
         diffReport.sections[key] = section;
         diffReport.biggestDiff = Math.min(diffReport.biggestDiff, section.lines.diff, section.statements.diff, section.functions.diff, section.branches.diff);
     });
@@ -26768,18 +26776,18 @@ exports.generateDiffReport = generateDiffReport;
  */
 function generateDiff(type, target, base) {
     var _a;
-    const targetVal = getVal(target, type);
-    const baseVal = getVal(base, type);
+    const targetPercent = getPercent(target, type);
+    const basePercent = getPercent(base, type);
     return {
-        percent: targetVal,
-        diff: targetVal - baseVal,
+        percent: targetPercent,
+        diff: targetPercent - basePercent,
         total: ((_a = target[type]) === null || _a === void 0 ? void 0 : _a.total) || 0,
     };
 }
 /**
  * Return the percent value from a summary section type
  */
-function getVal(section, type) {
+function getPercent(section, type) {
     const summary = section[type];
     if (typeof summary === "object" && typeof summary.pct === "number") {
         return summary.pct;
@@ -27076,6 +27084,7 @@ function getTemplateVars(report, failureMessage, inputs) {
         });
         // Add to file bucket
         if (key === "total") {
+            tmplFileSummary.name = "Total";
             tmplVars.total = tmplFileSummary;
         }
         else {
