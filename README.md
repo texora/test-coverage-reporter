@@ -1,6 +1,7 @@
 # Test Coverage Reporter
 
-A github action that generates a comprehensive unit test coverage diff summary between your PR and the base branch it's going to merge into.
+A github action that generates a comprehensive unit test coverage, including optional coverage diff with the branch the PR
+will merge into.
 
 ```
 - name: Generate report

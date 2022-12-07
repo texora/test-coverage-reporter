@@ -1,8 +1,29 @@
 import "jest";
-import { CoverageSummary, CoverageTypeSummary } from "./types";
+import type { Context } from "@actions/github/lib/context";
+
+import { Inputs, CoverageSummary, CoverageTypeSummary } from "./types";
 import { generateDiffReport } from "./diff";
 
 describe("diff", () => {
+  let inputs: Inputs;
+
+  beforeEach(() => {
+    inputs = {
+      title: "test",
+      accessToken: "",
+      baseCoveragePath: "",
+      coveragePath: "",
+      customMessage: "",
+      failDelta: 0.2,
+      stripPathPrefix: "",
+      context: {
+        issue: {
+          number: 123,
+        },
+      } as Context,
+    };
+  });
+
   describe("generateDiffReport", () => {
     const createFileCoverage = ({
       file,
@@ -37,7 +58,7 @@ describe("diff", () => {
         percent: 100,
       });
 
-      const diff = generateDiffReport(targetCoverage, {});
+      const diff = generateDiffReport(targetCoverage, {}, inputs);
       expect(diff["file1"].isNewFile).toBe(true);
     });
 
@@ -52,7 +73,7 @@ describe("diff", () => {
         total: 10,
         percent: 100,
       });
-      const diff = generateDiffReport(targetCoverage, baseCoverage);
+      const diff = generateDiffReport(targetCoverage, baseCoverage, inputs);
       expect(diff["file1"].isNewFile).toBe(false);
     });
 
@@ -68,7 +89,7 @@ describe("diff", () => {
         percent: 100,
       });
 
-      const diff = generateDiffReport(targetCoverage, baseCoverage);
+      const diff = generateDiffReport(targetCoverage, baseCoverage, inputs);
       expect(diff["file1"].lines.percent).toBe(100);
       expect(diff["file1"].lines.diff).toBe(15);
     });
@@ -85,7 +106,7 @@ describe("diff", () => {
         percent: 85,
       });
 
-      const diff = generateDiffReport(targetCoverage, baseCoverage);
+      const diff = generateDiffReport(targetCoverage, baseCoverage, inputs);
       expect(diff["file1"].lines.percent).toBe(85);
       expect(diff["file1"].lines.diff).toBe(-15);
     });

@@ -26734,13 +26734,16 @@ exports.generateDiffReport = void 0;
 /**
  * Generate a diff summary of two coverage files.
  */
-function generateDiffReport(coverage, baseCoverage) {
+function generateDiffReport(coverage, baseCoverage, inputs) {
+    var _a;
     const diffReport = {};
+    const hasBaseCoverage = ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) > 0;
     // Generate diff for each file
     Object.keys(coverage).map((key) => {
         const target = coverage[key] || {};
         const base = baseCoverage[key] || {};
-        const isNewFile = key !== "total" &&
+        const isNewFile = hasBaseCoverage &&
+            key !== "total" &&
             typeof target.lines !== "undefined" &&
             typeof base.lines === "undefined";
         // Generate delta
@@ -26887,8 +26890,8 @@ const output_1 = __nccwpck_require__(5768);
 function loadInputs() {
     const pwd = (0, child_process_1.execSync)("pwd").toString().trim();
     return {
-        accessToken: core.getInput("access-token"),
-        coveragePath: core.getInput("coverage-file"),
+        accessToken: core.getInput("access-token", { required: true }),
+        coveragePath: core.getInput("coverage-file", { required: true }),
         baseCoveragePath: core.getInput("base-coverage-file"),
         failDelta: Number(core.getInput("fail-delta")),
         title: core.getInput("title"),
@@ -26901,16 +26904,18 @@ function loadInputs() {
  * The entrypoint for the program
  */
 async function main() {
+    var _a;
     try {
         const inputs = loadInputs();
         console.log(github.context);
         // Get coverage
-        const [coverage, baseCoverage] = await Promise.all([
-            (0, fileLoader_1.loadCoverageFile)(inputs.coveragePath),
-            (0, fileLoader_1.loadCoverageFile)(inputs.baseCoveragePath),
-        ]);
+        const coverage = await (0, fileLoader_1.loadCoverageFile)(inputs.coveragePath);
+        let baseCoverage = {};
+        if ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) {
+            baseCoverage = await (0, fileLoader_1.loadCoverageFile)(inputs.baseCoveragePath);
+        }
         // Generate diff report
-        const diff = (0, diff_1.generateDiffReport)(coverage, baseCoverage);
+        const diff = (0, diff_1.generateDiffReport)(coverage, baseCoverage, inputs);
         const failed = diff.coverageFileFailurePercent !== null;
         // Generate template
         const output = (0, output_1.generateOutput)(diff, inputs);
@@ -26994,15 +26999,19 @@ exports.generateOutput = generateOutput;
  * Create template variables
  */
 function getTemplateVars(report, inputs) {
+    var _a;
+    const hasDiffs = ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) > 0;
     const tmplVars = {
         coverageFileFailurePercent: null,
         changed: [],
         unchanged: [],
+        all: [],
         total: {
             lines: "0",
             diff: "0",
             percent: "0",
         },
+        hasDiffs,
         title: inputs.title,
         customMessage: inputs.customMessage,
         prNumber: inputs.context.issue.number,
@@ -27034,20 +27043,22 @@ function getTemplateVars(report, inputs) {
         };
         NUMBER_SUMMARY_KEYS.forEach((type) => {
             const value = summary[type].percent;
+            const diff = summary[type].diff;
             tmplFileSummary[type].percent = decimalToString(value);
-            tmplFileSummary[type].diff = decimalToString(summary[type].diff);
+            tmplFileSummary[type].diff = decimalToString(diff);
             // Does this file coverage fall under the fail delta?
-            if (value < failDelta && value < coverageFileFailurePercent) {
-                coverageFileFailurePercent = value;
+            if (diff < failDelta && diff < coverageFileFailurePercent) {
+                coverageFileFailurePercent = diff;
             }
             // If the coverage changed by more than 0.1, add file to the changed bucket
-            if (!hasChange && Math.abs(value) >= MIN_CHANGE) {
+            if (!hasChange && Math.abs(diff) >= MIN_CHANGE) {
                 hasChange = true;
             }
         });
         // Add to file bucket
         const bucket = hasChange ? "changed" : "unchanged";
         tmplVars[bucket].push(tmplFileSummary);
+        tmplVars.all.push(tmplFileSummary);
     });
     // Process totals
     if (report.total) {

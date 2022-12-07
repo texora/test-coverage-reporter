@@ -49,15 +49,18 @@ export function getTemplateVars(
   report: DiffReport,
   inputs: Inputs
 ): TemplateVars {
+  const hasDiffs = inputs.baseCoveragePath?.length > 0;
   const tmplVars: TemplateVars = {
     coverageFileFailurePercent: null,
     changed: [],
     unchanged: [],
+    all: [],
     total: {
       lines: "0",
       diff: "0",
       percent: "0",
     },
+    hasDiffs,
     title: inputs.title,
     customMessage: inputs.customMessage,
     prNumber: inputs.context.issue.number,
@@ -113,6 +116,7 @@ export function getTemplateVars(
     // Add to file bucket
     const bucket = hasChange ? "changed" : "unchanged";
     tmplVars[bucket].push(tmplFileSummary);
+    tmplVars.all.push(tmplFileSummary);
   });
 
   // Process totals

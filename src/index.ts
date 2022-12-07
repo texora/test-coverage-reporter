@@ -14,8 +14,8 @@ function loadInputs(): Inputs {
   const pwd = execSync("pwd").toString().trim();
 
   return {
-    accessToken: core.getInput("access-token"),
-    coveragePath: core.getInput("coverage-file"),
+    accessToken: core.getInput("access-token", { required: true }),
+    coveragePath: core.getInput("coverage-file", { required: true }),
     baseCoveragePath: core.getInput("base-coverage-file"),
     failDelta: Number(core.getInput("fail-delta")),
     title: core.getInput("title"),
@@ -35,13 +35,14 @@ export async function main() {
     console.log(github.context);
 
     // Get coverage
-    const [coverage, baseCoverage] = await Promise.all([
-      loadCoverageFile(inputs.coveragePath),
-      loadCoverageFile(inputs.baseCoveragePath),
-    ]);
+    const coverage = await loadCoverageFile(inputs.coveragePath);
+    let baseCoverage = {};
+    if (inputs.baseCoveragePath?.length) {
+      baseCoverage = await loadCoverageFile(inputs.baseCoveragePath);
+    }
 
     // Generate diff report
-    const diff = generateDiffReport(coverage, baseCoverage);
+    const diff = generateDiffReport(coverage, baseCoverage, inputs);
     const failed = diff.coverageFileFailurePercent !== null;
 
     // Generate template

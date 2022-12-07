@@ -49,11 +49,13 @@ export type TemplateVars = {
   customMessage: string;
   prIdentifier: string;
   prNumber: number;
+  hasDiffs: boolean;
 
   coverageFileFailurePercent: string | null;
   total: TemplateDiffTotals;
   changed: TemplateDiffSummary[];
   unchanged: TemplateDiffSummary[];
+  all: TemplateDiffSummary[];
 
   renderFileSummary: Function;
 };

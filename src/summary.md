@@ -16,8 +16,24 @@ Commit: <%= prNumber.substring(0, 7) %>
 <!-- Totals -->
 | Total             | <%= total.percent %>% |
 | :---------------- | --------------------: |
-| Change from base: |    <%= total.diff %>% |
+<% if (!hasDiffs){ %>| Change from base: |    <%= total.diff %>% |<% } %>
 | Total Lines:      |    <%= total.lines %> |
+
+<!-- All files, if diffs aren't present -->
+<% if (!hasDiffs && all.length){ %>
+<details>
+<summary markdown="span">
+All files
+</summary>
+
+| File | Stmts | Branch | Funcs | Lines |
+| ---- | ----- | ------ | ----- | ----- |
+<% all.forEach((fileSummary) => { %>
+<%= renderFileSummary(fileSummary) %>
+<% }) %>
+</details>
+<% } %>
+
 
 <!-- Changed files -->
 <% if (changed.length){ %>
@@ -39,7 +55,6 @@ All other files
 
 | File | Stmts | Branch | Funcs | Lines |
 | ---- | ----- | ------ | ----- | ----- |
-
 <% unchanged.forEach((fileSummary) => { %>
 <%= renderFileSummary(fileSummary) %>
 <% }) %>

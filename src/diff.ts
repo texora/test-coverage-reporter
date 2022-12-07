@@ -1,4 +1,5 @@
 import {
+  Inputs,
   DiffReport,
   CoverageSummary,
   CoverageSection,
@@ -10,15 +11,18 @@ import {
  */
 export function generateDiffReport(
   coverage: CoverageSummary,
-  baseCoverage: CoverageSummary
+  baseCoverage: CoverageSummary,
+  inputs: Inputs
 ): DiffReport {
   const diffReport: DiffReport = {};
+  const hasBaseCoverage = inputs.baseCoveragePath?.length > 0;
 
   // Generate diff for each file
   Object.keys(coverage).map((key) => {
     const target = coverage[key] || {};
     const base = baseCoverage[key] || {};
     const isNewFile =
+      hasBaseCoverage &&
       key !== "total" &&
       typeof target.lines !== "undefined" &&
       typeof base.lines === "undefined";
