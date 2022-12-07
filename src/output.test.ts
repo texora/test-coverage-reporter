@@ -21,7 +21,17 @@ describe("output", () => {
           issue: {
             number: 123,
           },
-        } as Context,
+          payload: {
+            pull_request: {
+              head: {
+                sha: "1234567890",
+              },
+            },
+            repository: {
+              html_url: "https://github.com/jgillick/test-coverage-reporter",
+            },
+          },
+        } as unknown as Context,
       };
     });
 
@@ -116,7 +126,9 @@ describe("output", () => {
         hasDiffs: true,
         title: "test",
         customMessage: "",
-        prNumber: 123,
+        commitSha: "1234567890",
+        commitUrl:
+          "https://github.com/jgillick/test-coverage-reporter/commits/1234567890",
         prIdentifier: "<!-- test-coverage-reporter-output -->",
         renderFileSummary: expect.anything(),
       });

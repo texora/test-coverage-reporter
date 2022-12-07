@@ -37,3 +37,7 @@ You can easily see how this PR will either add or remove coverage from the branc
 See a full example in this [repos workflow](./.github/workflows/test.yml).
 
 For larger test suites, it can be more performant to save the base coverage to a longer-lived artifact and use an action like [actions-download-artifact](https://github.com/jgillick/actions-download-artifact) to download it.
+
+## Acknowledgements
+
+This action was inspired by the work of [Jest coverage report](https://github.com/ArtiomTr/jest-coverage-report-action) and [Jest Coverage Reporter Action](https://github.com/adRise/jest-cov-reporter).

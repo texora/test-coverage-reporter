@@ -26999,8 +26999,10 @@ exports.generateOutput = generateOutput;
  * Create template variables
  */
 function getTemplateVars(report, inputs) {
-    var _a;
+    var _a, _b, _c, _d;
     const hasDiffs = ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) > 0;
+    const commitSha = ((_c = (_b = inputs.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.head) === null || _c === void 0 ? void 0 : _c.sha) || github.context.sha;
+    const commitUrl = `${(_d = inputs.context.payload.repository) === null || _d === void 0 ? void 0 : _d.html_url}/commits/${commitSha}`;
     const tmplVars = {
         coverageFileFailurePercent: null,
         changed: [],
@@ -27014,7 +27016,8 @@ function getTemplateVars(report, inputs) {
         hasDiffs,
         title: inputs.title,
         customMessage: inputs.customMessage,
-        prNumber: inputs.context.issue.number,
+        commitSha,
+        commitUrl,
         prIdentifier: PR_COMMENT_IDENTIFIER,
         renderFileSummary,
     };

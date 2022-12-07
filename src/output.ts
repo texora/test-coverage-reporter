@@ -50,6 +50,10 @@ export function getTemplateVars(
   inputs: Inputs
 ): TemplateVars {
   const hasDiffs = inputs.baseCoveragePath?.length > 0;
+  const commitSha =
+    inputs.context.payload.pull_request?.head?.sha || github.context.sha;
+  const commitUrl = `${inputs.context.payload.repository?.html_url}/commits/${commitSha}`;
+
   const tmplVars: TemplateVars = {
     coverageFileFailurePercent: null,
     changed: [],
@@ -63,7 +67,8 @@ export function getTemplateVars(
     hasDiffs,
     title: inputs.title,
     customMessage: inputs.customMessage,
-    prNumber: inputs.context.issue.number,
+    commitSha,
+    commitUrl,
     prIdentifier: PR_COMMENT_IDENTIFIER,
 
     renderFileSummary,

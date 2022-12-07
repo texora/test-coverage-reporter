@@ -48,7 +48,8 @@ export type TemplateVars = {
   title: string;
   customMessage: string;
   prIdentifier: string;
-  prNumber: number;
+  commitSha: number;
+  commitUrl: string;
   hasDiffs: boolean;
 
   coverageFileFailurePercent: string | null;
