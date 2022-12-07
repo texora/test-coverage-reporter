@@ -1,6 +1,6 @@
 # Test Coverage Reporter
 
-A github action that generates a comprehensive unit test coverage, including optional coverage diff with the branch the PR
+A github action that generates a comprehensive unit test coverage report, including optional diff with the branch the PR
 will merge into.
 
 ![Screenshot](./screenshot_light.png)
