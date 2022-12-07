@@ -1,5 +1,8 @@
 name: Unit Tests
-on: pull_request
+on:
+  pull_request:
+    paths:
+      - "src/**"
 
 jobs:
   #
@@ -75,7 +78,7 @@ jobs:
           path: base-coverage
 
       - name: Generate report
-        uses: jgillick/test-coverage-reporter@unit-test-workflow
+        uses: jgillick/test-coverage-reporter@main
         with:
           coverage-file: ${{steps.prCoverage.outputs.download-path}}/coverage-final.json
           base-coverage-file: ${{steps.baseCoverage.outputs.download-path}}/coverage-final.json
