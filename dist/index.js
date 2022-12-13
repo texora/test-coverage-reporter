@@ -26924,8 +26924,9 @@ async function main() {
         const diff = (0, diff_1.generateDiffReport)(coverage, baseCoverage, inputs);
         // Check for PR failure
         const failed = Math.abs(diff.biggestDiff) >= inputs.failDelta;
+        const biggestDiff = (0, output_1.decimalToString)(Math.abs(diff.biggestDiff));
         const failureMessage = failed
-            ? `The coverage is reduced by at least ${Math.abs(diff.biggestDiff)}% for one or more files.`
+            ? `The coverage is reduced by at least ${biggestDiff}% for one or more files.`
             : null;
         // Generate template
         console.log("Generating summary");
