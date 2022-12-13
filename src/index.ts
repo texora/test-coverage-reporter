@@ -5,7 +5,12 @@ import * as github from "@actions/github";
 import { Inputs } from "./types";
 import { loadCoverageFile } from "./fileLoader";
 import { generateDiffReport } from "./diff";
-import { generateOutput, createPRComment, createSummary } from "./output";
+import {
+  generateOutput,
+  createPRComment,
+  createSummary,
+  decimalToString,
+} from "./output";
 
 /**
  * Get the action inputs
@@ -46,10 +51,9 @@ export async function main() {
 
     // Check for PR failure
     const failed = Math.abs(diff.biggestDiff) >= inputs.failDelta;
+    const biggestDiff = decimalToString(Math.abs(diff.biggestDiff));
     const failureMessage = failed
-      ? `The coverage is reduced by at least ${Math.abs(
-          diff.biggestDiff
-        )}% for one or more files.`
+      ? `The coverage is reduced by at least ${biggestDiff}% for one or more files.`
       : null;
 
     // Generate template
