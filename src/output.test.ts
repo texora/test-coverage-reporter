@@ -39,17 +39,19 @@ describe("output", () => {
       total,
       percent,
       diff,
+      isNewFile = false,
     }: {
       total: number;
       percent: number;
       diff: number;
+      isNewFile?: boolean;
     }): DiffSummary => {
       return {
         lines: { total, percent, diff },
         statements: { total: 1, percent: 2, diff: 0 },
         functions: { total: 3, percent: 4, diff: 0 },
         branches: { total: 5, percent: 6, diff: 0 },
-        isNewFile: false,
+        isNewFile,
       };
     };
 
@@ -159,6 +161,20 @@ describe("output", () => {
         total: 100,
         percent: 85,
         diff: 1,
+      });
+
+      const vars = getTemplateVars(report, null, inputs);
+      expect(vars.changed.length).toBe(1);
+      expect(vars.unchanged.length).toBe(0);
+    });
+
+    test("new file", () => {
+      const report = generateReport();
+      report.sections.file1 = generateFileSummary({
+        total: 100,
+        percent: 85,
+        diff: 0,
+        isNewFile: true,
       });
 
       const vars = getTemplateVars(report, null, inputs);

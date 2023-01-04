@@ -27072,8 +27072,9 @@ function getTemplateVars(report, failureMessage, inputs) {
             if (diff < failFileReduced && diff < coverageFileFailurePercent) {
                 coverageFileFailurePercent = diff;
             }
-            // If the coverage changed by more than 0.1, add file to the changed bucket
-            if (!hasChange && Math.abs(diff) >= MIN_CHANGE) {
+            // If this is a new file or the coverage changed by more than 0.1, add file to the changed bucket
+            const absDiff = Math.abs(diff);
+            if (!hasChange && (summary.isNewFile || absDiff >= MIN_CHANGE)) {
                 hasChange = true;
             }
         });
