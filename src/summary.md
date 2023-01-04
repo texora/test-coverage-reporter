@@ -25,7 +25,6 @@ All files
 
 | Name | Stmts | Branch | Funcs | Lines |
 | ---- | ----- | ------ | ----- | ----- |
-
 <%= renderFileSummary(total) %>
 <%= all.map((fileSummary) => renderFileSummary(fileSummary)).join('\n') %>
 
@@ -38,7 +37,6 @@ All files
 
 | Name | Stmts | Branch | Funcs | Lines |
 | ---- | ----- | ------ | ----- | ----- |
-
 <%= renderFileSummary(total) %>
 <%= changed.map((fileSummary) => renderFileSummary(fileSummary)).join('\n') %>
 <% } %>
@@ -54,7 +52,6 @@ Unchanged files
 
 | Name | Stmts | Branch | Funcs | Lines |
 | ---- | ----- | ------ | ----- | ----- |
-
 <%= unchanged.map((fileSummary) => renderFileSummary(fileSummary)).join('\n') %>
 
 </details>
