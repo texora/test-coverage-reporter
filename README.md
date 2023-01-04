@@ -1,16 +1,14 @@
 # Test Coverage Reporter
 
-A github action that generates a comprehensive unit test coverage, including optional coverage diff with the branch the PR
+A github action that generates a comprehensive unit test coverage report, including optional diff with the branch the PR
 will merge into.
 
-![Screenshot](./screenshot_dark.png#gh-dark-mode-only)
-![Screenshot](./screenshot_light.png#gh-light-mode-only)
+![Screenshot](./screenshot_light.png)
 
 ## Usage
 
 ```
-- name: Generate report
-  uses: jgillick/test-coverage-reporter@v1
+- uses: jgillick/test-coverage-reporter@v1
   with:
     coverage-file: coverage/coverage-final.json
     access-token: ${{ secrets.GITHUB_TOKEN }}
@@ -19,7 +17,7 @@ will merge into.
 ## Inputs
 
 - `coverage-file`: Path to the test coverage report
-- `base-coverage-file`: Path to the coverage report from the branch to compare against.
+- `base-coverage-file`: Path to the coverage report to compare against. This is most likely from the branch you plan to merge into.
 - `access-token`: Required to comment on the PR
 - `fail-delta`: If coverage for any file is reduced by this much (in percent) the run will fail. (default: `0.2`)
 - `title`: The coverage report title
@@ -31,8 +29,7 @@ will merge into.
 You can easily see how this PR will either add or remove coverage from the branch it will be merging into by passing the `base-coverage-file` input.
 
 ```
-- name: Generate report
-  uses: jgillick/test-coverage-reporter@v1
+- uses: jgillick/test-coverage-reporter@v1
   with:
     coverage-file: coverage/coverage-final.json
     base-coverage-file: main-branch/coverage/coverage-final.json
