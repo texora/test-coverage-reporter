@@ -22,7 +22,7 @@ function loadInputs(): Inputs {
     accessToken: core.getInput("access-token", { required: true }),
     coveragePath: core.getInput("coverage-file", { required: true }),
     baseCoveragePath: core.getInput("base-coverage-file"),
-    failDelta: Number(core.getInput("fail-delta")),
+    failFileReduced: Number(core.getInput("fail-file-reduced")),
     title: core.getInput("title"),
     customMessage: core.getInput("custom-message"),
     stripPathPrefix: core.getInput("strip-path-prefix") || pwd,
@@ -50,7 +50,7 @@ export async function main() {
     const diff = generateDiffReport(coverage, baseCoverage, inputs);
 
     // Check for PR failure
-    const failed = Math.abs(diff.biggestDiff) >= inputs.failDelta;
+    const failed = Math.abs(diff.biggestDiff) >= inputs.failFileReduced;
     const biggestDiff = decimalToString(Math.abs(diff.biggestDiff));
     const failureMessage = failed
       ? `The coverage is reduced by at least ${biggestDiff}% for one or more files.`

@@ -15,7 +15,7 @@ describe("output", () => {
         coveragePath: "coverage/report-final.json",
         baseCoveragePath: "base/coverage/report-final.json",
         customMessage: "",
-        failDelta: 0.2,
+        failFileReduced: 0.2,
         stripPathPrefix: "",
         context: {
           issue: {

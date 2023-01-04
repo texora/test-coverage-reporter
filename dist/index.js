@@ -26744,11 +26744,11 @@ function generateDiffReport(coverage, baseCoverage, inputs) {
     // Generate diff for each file
     Object.keys(coverage).map((key) => {
         const target = coverage[key] || {};
-        const base = baseCoverage[key] || {};
+        const base = baseCoverage[key];
         const isNewFile = hasBaseCoverage &&
             key !== "total" &&
             typeof target.lines !== "undefined" &&
-            typeof base.lines === "undefined";
+            typeof base === "undefined";
         // Generate delta
         const section = {
             isNewFile,
@@ -26769,7 +26769,7 @@ exports.generateDiffReport = generateDiffReport;
 function generateDiff(type, target, base) {
     var _a;
     const targetPercent = getPercent(target, type);
-    const basePercent = getPercent(base, type);
+    const basePercent = base ? getPercent(base, type) : targetPercent;
     return {
         percent: targetPercent,
         diff: targetPercent - basePercent,
@@ -26898,7 +26898,7 @@ function loadInputs() {
         accessToken: core.getInput("access-token", { required: true }),
         coveragePath: core.getInput("coverage-file", { required: true }),
         baseCoveragePath: core.getInput("base-coverage-file"),
-        failDelta: Number(core.getInput("fail-delta")),
+        failFileReduced: Number(core.getInput("fail-file-reduced")),
         title: core.getInput("title"),
         customMessage: core.getInput("custom-message"),
         stripPathPrefix: core.getInput("strip-path-prefix") || pwd,
@@ -26923,7 +26923,7 @@ async function main() {
         console.log("Generating diff report");
         const diff = (0, diff_1.generateDiffReport)(coverage, baseCoverage, inputs);
         // Check for PR failure
-        const failed = Math.abs(diff.biggestDiff) >= inputs.failDelta;
+        const failed = Math.abs(diff.biggestDiff) >= inputs.failFileReduced;
         const biggestDiff = (0, output_1.decimalToString)(Math.abs(diff.biggestDiff));
         const failureMessage = failed
             ? `The coverage is reduced by at least ${biggestDiff}% for one or more files.`
@@ -27043,7 +27043,9 @@ function getTemplateVars(report, failureMessage, inputs) {
         renderFileSummary: renderFileSummaryFactory(inputs),
     };
     const { stripPathPrefix } = inputs;
-    const failDelta = inputs.failDelta > 0 ? inputs.failDelta * -1 : inputs.failDelta;
+    const failFileReduced = inputs.failFileReduced > 0
+        ? inputs.failFileReduced * -1
+        : inputs.failFileReduced;
     // Process all the file deltas
     let coverageFileFailurePercent = 0;
     Object.entries(report.sections).forEach(([key, summary]) => {
@@ -27067,7 +27069,7 @@ function getTemplateVars(report, failureMessage, inputs) {
             tmplFileSummary[type].percent = decimalToString(percent);
             tmplFileSummary[type].diff = decimalToString(diff);
             // Does this file coverage fall under the fail delta?
-            if (diff < failDelta && diff < coverageFileFailurePercent) {
+            if (diff < failFileReduced && diff < coverageFileFailurePercent) {
                 coverageFileFailurePercent = diff;
             }
             // If the coverage changed by more than 0.1, add file to the changed bucket

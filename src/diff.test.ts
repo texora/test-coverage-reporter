@@ -14,7 +14,7 @@ describe("diff", () => {
       coveragePath: "coverage/report-final.json",
       baseCoveragePath: "base/coverage/report-final.json",
       customMessage: "",
-      failDelta: 0.2,
+      failFileReduced: 0.2,
       stripPathPrefix: "",
       context: {
         issue: {
@@ -60,6 +60,10 @@ describe("diff", () => {
 
       const diff = generateDiffReport(targetCoverage, {}, inputs);
       expect(diff.sections["file1"].isNewFile).toBe(true);
+      expect(diff.sections["file1"].lines.diff).toBe(0);
+      expect(diff.sections["file1"].statements.diff).toBe(0);
+      expect(diff.sections["file1"].functions.diff).toBe(0);
+      expect(diff.sections["file1"].branches.diff).toBe(0);
     });
 
     test("not new file", () => {

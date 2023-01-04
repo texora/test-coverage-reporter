@@ -23,12 +23,12 @@ export function generateDiffReport(
   // Generate diff for each file
   Object.keys(coverage).map((key) => {
     const target = coverage[key] || {};
-    const base = baseCoverage[key] || {};
+    const base = baseCoverage[key];
     const isNewFile =
       hasBaseCoverage &&
       key !== "total" &&
       typeof target.lines !== "undefined" &&
-      typeof base.lines === "undefined";
+      typeof base === "undefined";
 
     // Generate delta
     const section = {
@@ -58,10 +58,10 @@ export function generateDiffReport(
 function generateDiff(
   type: keyof CoverageSection,
   target: CoverageSection,
-  base: CoverageSection
+  base?: CoverageSection
 ): CoverageDiff {
   const targetPercent = getPercent(target, type);
-  const basePercent = getPercent(base, type);
+  const basePercent = base ? getPercent(base, type) : targetPercent;
 
   return {
     percent: targetPercent,

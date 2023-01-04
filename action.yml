@@ -13,9 +13,8 @@ inputs:
   access-token:
     description: Required to comment on the PR
     default: ${{ github.token }}
-  fail-delta:
+  fail-file-reduced:
     description: If coverage for any file is reduced by this much (in percent) the run will fail.
-    default: 0.2
   custom-message:
     description: Add custom text to the output.
   title:

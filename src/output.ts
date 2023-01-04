@@ -86,8 +86,10 @@ export function getTemplateVars(
     renderFileSummary: renderFileSummaryFactory(inputs),
   };
   const { stripPathPrefix } = inputs;
-  const failDelta =
-    inputs.failDelta > 0 ? inputs.failDelta * -1 : inputs.failDelta;
+  const failFileReduced =
+    inputs.failFileReduced > 0
+      ? inputs.failFileReduced * -1
+      : inputs.failFileReduced;
 
   // Process all the file deltas
   let coverageFileFailurePercent = 0;
@@ -115,7 +117,7 @@ export function getTemplateVars(
       tmplFileSummary[type].diff = decimalToString(diff);
 
       // Does this file coverage fall under the fail delta?
-      if (diff < failDelta && diff < coverageFileFailurePercent) {
+      if (diff < failFileReduced && diff < coverageFileFailurePercent) {
         coverageFileFailurePercent = diff;
       }
 

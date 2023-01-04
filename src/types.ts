@@ -4,7 +4,7 @@ export type Inputs = {
   coveragePath: string;
   baseCoveragePath: string;
   accessToken: string;
-  failDelta: number;
+  failFileReduced: number;
   title: string;
   customMessage: string;
   stripPathPrefix: string;
