@@ -61,7 +61,7 @@ export function getTemplateVars(
   const hasDiffs = inputs.baseCoveragePath?.length > 0;
   const commitSha =
     inputs.context.payload.pull_request?.head?.sha || github.context.sha;
-  const commitUrl = `${inputs.context.payload.repository?.html_url}/commits/${commitSha}`;
+  const commitUrl = `${inputs.context.payload.repository?.html_url}/commit/${commitSha}`;
 
   const tmplVars: TemplateVars = {
     failureMessage,
