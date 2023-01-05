@@ -27040,7 +27040,7 @@ function getTemplateVars(report, failureMessage, inputs) {
         commitSha,
         commitUrl,
         prIdentifier: PR_COMMENT_IDENTIFIER,
-        renderFileSummary: renderFileSummaryFactory(inputs),
+        renderFileSummaryTableRow: renderFileSummaryFactory(inputs),
     };
     const { stripPathPrefix } = inputs;
     const failFileReduced = inputs.failFileReduced > 0
@@ -27173,7 +27173,7 @@ exports.createSummary = createSummary;
 function renderFileSummaryFactory(inputs) {
     var _a;
     const hasDiffs = ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) > 0;
-    return function renderFileSummary(summary) {
+    return function renderFileSummaryTableRow(summary) {
         const linePercent = Number(summary.lines.percent);
         let status = ":red_circle:";
         if (linePercent > 80) {
