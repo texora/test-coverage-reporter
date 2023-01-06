@@ -27175,13 +27175,26 @@ function renderFileSummaryFactory(inputs) {
     const hasDiffs = ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) > 0;
     return function renderFileSummaryTableRow(summary) {
         const linePercent = Number(summary.lines.percent);
-        let status = ":red_circle:";
+        // Overall file coverage status
+        let coverageStatus = ":red_circle:";
         if (linePercent > 80) {
-            status = ":green_circle:";
+            coverageStatus = ":green_circle:";
         }
         else if (linePercent > 40) {
-            status = ":yellow_circle:";
+            coverageStatus = ":yellow_circle:";
         }
+        // Diff change status for the file
+        // If any of the diffs are below zero, the file get's a negative icon
+        const minDiff = Object.values(summary).reduce((val, item) => {
+            if (typeof item === "object") {
+                const diff = Number(item.diff);
+                if (diff < val) {
+                    return diff;
+                }
+            }
+            return val;
+        }, 0);
+        const changeStatus = minDiff < 0 ? "<br/>🔻" : "";
         const formatText = (text) => {
             if (summary.name === "Total") {
                 return `**${text}**`;
@@ -27195,7 +27208,8 @@ function renderFileSummaryFactory(inputs) {
             }
             return formatText(itemOut);
         };
-        return (`| ${status} ${formatText(summary.name)} ` +
+        return (`| ${coverageStatus}${changeStatus} ` +
+            `| ${formatText(summary.name)} ` +
             `| ${itemOutput(summary.statements)} ` +
             `| ${itemOutput(summary.branches)} ` +
             `| ${itemOutput(summary.functions)} ` +

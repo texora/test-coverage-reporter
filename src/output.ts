@@ -239,12 +239,26 @@ function renderFileSummaryFactory(inputs: Inputs) {
   return function renderFileSummaryTableRow(summary: TemplateDiffSummary) {
     const linePercent = Number(summary.lines.percent);
 
-    let status = ":red_circle:";
+    // Overall file coverage status
+    let coverageStatus = ":red_circle:";
     if (linePercent > 80) {
-      status = ":green_circle:";
+      coverageStatus = ":green_circle:";
     } else if (linePercent > 40) {
-      status = ":yellow_circle:";
+      coverageStatus = ":yellow_circle:";
     }
+
+    // Diff change status for the file
+    // If any of the diffs are below zero, the file get's a negative icon
+    const minDiff = Object.values(summary).reduce((val, item) => {
+      if (typeof item === "object") {
+        const diff = Number(item.diff);
+        if (diff < val) {
+          return diff;
+        }
+      }
+      return val;
+    }, 0);
+    const changeStatus = minDiff < 0 ? "<br/>🔻" : "";
 
     const formatText = (text: string) => {
       if (summary.name === "Total") {
@@ -262,7 +276,8 @@ function renderFileSummaryFactory(inputs: Inputs) {
     };
 
     return (
-      `| ${status} ${formatText(summary.name)} ` +
+      `| ${coverageStatus}${changeStatus} ` +
+      `| ${formatText(summary.name)} ` +
       `| ${itemOutput(summary.statements)} ` +
       `| ${itemOutput(summary.branches)} ` +
       `| ${itemOutput(summary.functions)} ` +

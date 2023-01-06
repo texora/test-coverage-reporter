@@ -30,8 +30,8 @@ Summary
 All files
 </summary>
 
-| Name | Stmts | Branch | Funcs | Lines |
-| ---- | ----- | ------ | ----- | ----- |
+| Name | Stmts | Branch | Funcs | Lines |  |
+| ---- | ----- | ------ | ----- | ----- | ----- |
 <%= all.map((fileSummary) => renderFileSummaryTableRow(fileSummary)).join('\n') %>
 
 </details>
@@ -41,8 +41,10 @@ All files
 
 <% if (changed.length){ %>
 
-| Name | Stmts | Branch | Funcs | Lines |
-| ---- | ----- | ------ | ----- | ----- |
+Changed files
+
+| Name | Stmts | Branch | Funcs | Lines |  |
+| ---- | ----- | ------ | ----- | ----- | ----- |
 <%= changed.map((fileSummary) => renderFileSummaryTableRow(fileSummary)).join('\n') %>
 <% } %>
 

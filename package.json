@@ -1,6 +1,6 @@
 {
   "name": "test-coverage-reporter",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Generate a test coverage report for a PR",
   "main": "dist/index.js",
   "scripts": {
