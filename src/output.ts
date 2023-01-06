@@ -83,6 +83,7 @@ export function getTemplateVars(
     commitUrl,
     prIdentifier: PR_COMMENT_IDENTIFIER,
 
+    renderFileSummaryTableHeader: renderFileSummaryTableHeader,
     renderFileSummaryTableRow: renderFileSummaryFactory(inputs),
   };
   const { stripPathPrefix } = inputs;
@@ -228,6 +229,16 @@ export function createSummary(output: string, failed: boolean, inputs: Inputs) {
       summary: output,
     },
   });
+}
+
+/**
+ * Create the markdown file table headers
+ */
+function renderFileSummaryTableHeader() {
+  return [
+    "| | Name | Stmts | Branch | Funcs | Lines |",
+    "| ---- | ---- | ----- | ------ | ----- | ----- |",
+  ].join("\n");
 }
 
 /**

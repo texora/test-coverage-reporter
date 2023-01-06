@@ -15,10 +15,10 @@ Commit: <%= commitSha %>
 <% } %>
 
 <!-- Summary -->
+
 Summary
 
-| Name | Stmts | Branch | Funcs | Lines |
-| ---- | ----- | ------ | ----- | ----- |
+<%= renderFileSummaryTableHeader() %>
 <%= renderFileSummaryTableRow(total) %>
 
 <!-- All files, if diffs aren't present -->
@@ -30,8 +30,7 @@ Summary
 All files
 </summary>
 
-| Name | Stmts | Branch | Funcs | Lines |  |
-| ---- | ----- | ------ | ----- | ----- | ----- |
+<%= renderFileSummaryTableHeader() %>
 <%= all.map((fileSummary) => renderFileSummaryTableRow(fileSummary)).join('\n') %>
 
 </details>
@@ -43,8 +42,7 @@ All files
 
 Changed files
 
-| Name | Stmts | Branch | Funcs | Lines |  |
-| ---- | ----- | ------ | ----- | ----- | ----- |
+<%= renderFileSummaryTableHeader() %>
 <%= changed.map((fileSummary) => renderFileSummaryTableRow(fileSummary)).join('\n') %>
 <% } %>
 
@@ -57,8 +55,7 @@ Changed files
 Unchanged files
 </summary>
 
-| Name | Stmts | Branch | Funcs | Lines |
-| ---- | ----- | ------ | ----- | ----- |
+<%= renderFileSummaryTableHeader() %>
 <%= unchanged.map((fileSummary) => renderFileSummaryTableRow(fileSummary)).join('\n') %>
 
 </details>

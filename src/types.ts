@@ -62,6 +62,7 @@ export type TemplateVars = {
   unchanged: TemplateDiffSummary[];
   all: TemplateDiffSummary[];
 
+  renderFileSummaryTableHeader: Function;
   renderFileSummaryTableRow: Function;
 };
 

@@ -27040,6 +27040,7 @@ function getTemplateVars(report, failureMessage, inputs) {
         commitSha,
         commitUrl,
         prIdentifier: PR_COMMENT_IDENTIFIER,
+        renderFileSummaryTableHeader: renderFileSummaryTableHeader,
         renderFileSummaryTableRow: renderFileSummaryFactory(inputs),
     };
     const { stripPathPrefix } = inputs;
@@ -27167,6 +27168,15 @@ function createSummary(output, failed, inputs) {
     });
 }
 exports.createSummary = createSummary;
+/**
+ * Create the markdown file table headers
+ */
+function renderFileSummaryTableHeader() {
+    return [
+        "| | Name | Stmts | Branch | Funcs | Lines |",
+        "| ---- | ---- | ----- | ------ | ----- | ----- |",
+    ].join("\n");
+}
 /**
  * Create the markdown for a filepath row
  */
