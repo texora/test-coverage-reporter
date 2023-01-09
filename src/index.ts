@@ -50,11 +50,18 @@ export async function main() {
     const diff = generateDiffReport(coverage, baseCoverage, inputs);
 
     // Check for PR failure
-    const failed = Math.abs(diff.biggestDiff) >= inputs.failFileReduced;
-    const biggestDiff = decimalToString(Math.abs(diff.biggestDiff));
-    const failureMessage = failed
-      ? `The coverage is reduced by at least ${biggestDiff}% for one or more files.`
-      : null;
+    let failed = false;
+    let failureMessage: string | null = null;
+    if (
+      typeof inputs.failFileReduced === "number" &&
+      inputs.failFileReduced > 0
+    ) {
+      failed = Math.abs(diff.biggestDiff) >= inputs.failFileReduced;
+      const biggestDiff = decimalToString(Math.abs(diff.biggestDiff));
+      failureMessage = failed
+        ? `The coverage is reduced by at least ${biggestDiff}% for one or more files.`
+        : null;
+    }
 
     // Generate template
     console.log("Generating summary");

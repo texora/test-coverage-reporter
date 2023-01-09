@@ -26923,11 +26923,16 @@ async function main() {
         console.log("Generating diff report");
         const diff = (0, diff_1.generateDiffReport)(coverage, baseCoverage, inputs);
         // Check for PR failure
-        const failed = Math.abs(diff.biggestDiff) >= inputs.failFileReduced;
-        const biggestDiff = (0, output_1.decimalToString)(Math.abs(diff.biggestDiff));
-        const failureMessage = failed
-            ? `The coverage is reduced by at least ${biggestDiff}% for one or more files.`
-            : null;
+        let failed = false;
+        let failureMessage = null;
+        if (typeof inputs.failFileReduced === "number" &&
+            inputs.failFileReduced > 0) {
+            failed = Math.abs(diff.biggestDiff) >= inputs.failFileReduced;
+            const biggestDiff = (0, output_1.decimalToString)(Math.abs(diff.biggestDiff));
+            failureMessage = failed
+                ? `The coverage is reduced by at least ${biggestDiff}% for one or more files.`
+                : null;
+        }
         // Generate template
         console.log("Generating summary");
         const output = (0, output_1.generateOutput)(diff, failureMessage, inputs);
