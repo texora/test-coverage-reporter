@@ -14,7 +14,7 @@ inputs:
     description: Required to comment on the PR
     default: ${{ github.token }}
   fail-file-reduced:
-    description: If coverage for any file is reduced by this much (in percent) the run will fail.
+    description: If coverage for any file is reduced by this much (in percent) the run will fail. Defaults to 0.5%, set to 0 to disable.
     default: 0.5
   custom-message:
     description: Add custom text to the output.
