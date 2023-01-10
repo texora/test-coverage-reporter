@@ -182,12 +182,27 @@ describe("output", () => {
         total: 100,
         percent: 85,
         diff: 1,
+        isPrFile: true,
+      });
+
+      const vars = getTemplateVars(report, null, inputs);
+      expect(vars.changed.length).toBe(1);
+      expect(vars.unchanged.length).toBe(0);
+    });
+
+    test("non-PR files not included", () => {
+      const report = generateReport();
+      report.sections.file1 = generateFileSummary({
+        total: 100,
+        percent: 85,
+        diff: 1,
         isPrFile: false,
       });
 
       const vars = getTemplateVars(report, null, inputs);
       expect(vars.changed.length).toBe(0);
-      expect(vars.unchanged.length).toBe(1);
+      expect(vars.unchanged.length).toBe(0);
+      expect(vars.all.length).toBe(0);
     });
 
     test("new file", () => {
