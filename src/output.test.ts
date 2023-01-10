@@ -136,9 +136,10 @@ describe("output", () => {
         customMessage: "",
         commitSha: "1234567890",
         commitUrl:
-          "https://github.com/jgillick/test-coverage-reporter/commits/1234567890",
+          "https://github.com/jgillick/test-coverage-reporter/commit/1234567890",
         prIdentifier: "<!-- test-coverage-reporter-output -->",
-        renderFileSummary: expect.anything(),
+        renderFileSummaryTableHeader: expect.anything(),
+        renderFileSummaryTableRow: expect.anything(),
       });
     });
 
