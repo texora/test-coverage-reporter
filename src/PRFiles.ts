@@ -103,7 +103,7 @@ export default class PRFiles {
         tree_sha: commitSha,
       });
       console.log("TREE");
-      console.log(tree);
+      console.log(tree.data.tree);
     }
   }
 
