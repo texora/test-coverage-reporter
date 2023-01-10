@@ -73,6 +73,7 @@ jobs:
 
       - name: Download base coverage
         id: baseCoverage
+        continue-on-error: true
         uses: actions/download-artifact@v3
         with:
           name: base-coverage
