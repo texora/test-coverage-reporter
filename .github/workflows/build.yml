@@ -38,4 +38,6 @@ jobs:
           if [[ $STAGED -gt 0 ]]; then
             git commit -v -m "Automated build"
             git push
+          else
+            echo "No changes to commit"
           fi
