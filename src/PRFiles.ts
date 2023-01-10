@@ -91,12 +91,16 @@ export default class PRFiles {
     results.forEach((file) => this.fileMap.set(file.filename, file));
 
     const file = this.fileMap.get("src/PRFiles.ts");
-    if (file) {
+    const commitSha =
+      this.inputs.context.payload.pull_request?.head?.sha ||
+      github?.context?.sha;
+    console.log({ commitSha });
+    if (file && commitSha) {
       const tree = await client.rest.git.getTree({
         owner: repoOwner,
         repo: repoName,
         pull_number: prNumber,
-        tree_sha: file?.sha,
+        tree_sha: commitSha,
       });
       console.log("TREE");
       console.log(tree);
