@@ -26813,12 +26813,24 @@ class PRFiles {
             repo: repoName,
             pull_number: prNumber,
         });
+        console.log("All files!");
         console.log(results);
         // Get the list of file names and sort them by length
         this.files = results.map((file) => file.filename).sort(pathSort);
         // Add files to map
         this.fileMap = new Map();
         results.forEach((file) => this.fileMap.set(file.filename, file));
+        const file = this.fileMap.get("src/PRFiles.ts");
+        if (file) {
+            const tree = await client.rest.git.getTree({
+                owner: repoOwner,
+                repo: repoName,
+                pull_number: prNumber,
+                tree_sha: file === null || file === void 0 ? void 0 : file.sha,
+            });
+            console.log("TREE");
+            console.log(tree);
+        }
     }
     /**
      * Read the test coverage file and extract a list of files that are included in the PR
