@@ -35,7 +35,7 @@ export function generateDiffReport(
 
       // Don't generate report for non-PR fils
       const isPrFile = prFiles.inPR(key);
-      if (!isPrFile) {
+      if (key !== "total" && !isPrFile) {
         return null;
       }
 
