@@ -27203,7 +27203,7 @@ function getTemplateVars(report, failureMessage, inputs) {
             tmplVars.total = tmplFileSummary;
         }
         else {
-            const bucket = hasChange && summary.isPrFile ? "changed" : "unchanged";
+            const bucket = hasChange ? "changed" : "unchanged";
             tmplVars[bucket].push(tmplFileSummary);
             tmplVars.all.push(tmplFileSummary);
         }
