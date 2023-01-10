@@ -3,6 +3,7 @@ on:
   push:
     paths:
       - "src/**"
+      - ".github/workflows/build.yml"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.head_ref || github.ref || github.run_id }}
@@ -30,10 +31,10 @@ jobs:
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git pull
-          git add -v dist
 
+          git add -v dist
           STAGED=$(git diff --cached --numstat | wc -l)
+
           if [[ $STAGED -gt 0 ]]; then
             git commit -v -m "Automated build"
             git push
