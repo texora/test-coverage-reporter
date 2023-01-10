@@ -27,7 +27,18 @@ describe("PRFiles", () => {
           repo: "",
           owner: "",
         },
-      } as Context,
+        payload: {
+          pull_request: {
+            head: {
+              sha: "1234",
+            },
+          },
+          repository: {
+            html_url:
+              "https://github.com/jgillick/test-coverage-reporter/pull/5",
+          },
+        },
+      } as unknown as Context,
     };
     prFiles = new PRFiles(inputs);
   });
@@ -82,6 +93,37 @@ describe("PRFiles", () => {
 
       expect(prFiles.inPR("/x/y/z/b/c/d")).toBe(true);
       expect(prFiles.inPR("/x/y/z/b")).toBe(false);
+    });
+  });
+
+  describe("fileUrl", () => {
+    beforeEach(async () => {
+      jest.spyOn(github, "getOctokit").mockReturnValue({
+        paginate: jest.fn(() =>
+          Promise.resolve([
+            { filename: "/z", sha: "123" },
+            { filename: "/a/b/c", sha: "234" },
+            { filename: "/abcdefg/hijklmn", sha: "345" },
+            { filename: "/c/d/e/f/g", sha: "456" },
+            { filename: "/x/y", sha: "567" },
+          ])
+        ) as unknown as OctoKit,
+      } as unknown as OctoKit);
+
+      await prFiles.fetchPRFiles();
+    });
+
+    test("get file URL", async () => {
+      prFiles.pathPrefix = "/x";
+      const url = prFiles.fileUrl("/x/a/b/c");
+      expect(url).toBe(
+        "https://github.com/jgillick/test-coverage-reporter/pull/5/commit/1234#diff-234"
+      );
+    });
+
+    test("file not found", async () => {
+      const url = prFiles.fileUrl("/not/here");
+      expect(url).toBe(null);
     });
   });
 });

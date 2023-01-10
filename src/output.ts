@@ -105,6 +105,7 @@ export function getTemplateVars(
     const tmplFileSummary: TemplateDiffSummary = {
       name,
       isNewFile: summary.isNewFile,
+      fileUrl: summary.fileUrl,
       lines: { percent: "0", diff: "0" },
       statements: { percent: "0", diff: "0" },
       functions: { percent: "0", diff: "0" },
@@ -258,10 +259,10 @@ function renderFileSummaryFactory(inputs: Inputs) {
       coverageStatus = ":yellow_circle:";
     }
 
-    // Diff change status for the file
+    // Overall diff status for the file
     // If any of the diffs are below zero, the file get's a negative icon
     const minDiff = Object.values(summary).reduce((val, item) => {
-      if (typeof item === "object") {
+      if (typeof item === "object" && item !== null) {
         const diff = Number(item.diff);
         if (diff < val) {
           return diff;
@@ -278,6 +279,14 @@ function renderFileSummaryFactory(inputs: Inputs) {
       return text;
     };
 
+    const formatTitle = () => {
+      const value = formatText(summary.name);
+      if (summary.fileUrl) {
+        return `[${value}](${summary.fileUrl})`;
+      }
+      return value;
+    };
+
     const itemOutput = (item: TemplateDiffSummaryValues) => {
       let itemOut = `${item.percent}%`;
       if (hasDiffs && item.diff !== "0") {
@@ -288,7 +297,7 @@ function renderFileSummaryFactory(inputs: Inputs) {
 
     return (
       `| ${coverageStatus}${changeStatus} ` +
-      `| ${formatText(summary.name)} ` +
+      `| ${formatTitle()} ` +
       `| ${itemOutput(summary.statements)} ` +
       `| ${itemOutput(summary.branches)} ` +
       `| ${itemOutput(summary.functions)} ` +

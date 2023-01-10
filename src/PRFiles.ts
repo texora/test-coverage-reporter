@@ -1,6 +1,11 @@
 import * as github from "@actions/github";
 import { Inputs, CoverageSummary } from "./types";
 
+type Octokit = ReturnType<typeof github.getOctokit>;
+type PrFile = Awaited<
+  ReturnType<Octokit["rest"]["pulls"]["listFiles"]>
+>["data"][0];
+
 /**
  * A helper class that holds a list of all the files included in the PR
  * and provides helper methods to query this list.
@@ -8,12 +13,14 @@ import { Inputs, CoverageSummary } from "./types";
 export default class PRFiles {
   inputs: Inputs;
   files: string[];
+  fileMap: Map<string, PrFile>;
   pathPrefix: string = "";
 
   constructor(inputs: Inputs) {
     this.files = [];
     this.pathPrefix = "";
     this.inputs = inputs;
+    this.fileMap = new Map<string, PrFile>();
   }
 
   /**
@@ -24,6 +31,35 @@ export default class PRFiles {
       filepath = filepath.substring(this.pathPrefix.length);
     }
     return this.files.includes(filepath);
+  }
+
+  /**
+   * Get the URL to the file in the PR commit
+   */
+  fileUrl(filepath: string): string | null {
+    // Construct commit URL
+    const commitSha =
+      this.inputs.context.payload?.pull_request?.head?.sha ||
+      this.inputs.context.sha;
+    const repoUrl = this.inputs.context.payload.repository?.html_url;
+    if (!commitSha || !repoUrl) {
+      return null;
+    }
+
+    let url = `${repoUrl}/commit/${commitSha}`;
+
+    // Find file sha
+    if (filepath.startsWith(this.pathPrefix)) {
+      filepath = filepath.substring(this.pathPrefix.length);
+    }
+    if (this.fileMap.has(filepath)) {
+      const file = this.fileMap.get(filepath);
+      url += `#diff-${file?.sha}`;
+    } else {
+      return null;
+    }
+
+    return url;
   }
 
   /**
@@ -47,6 +83,10 @@ export default class PRFiles {
 
     // Get the list of file names and sort them by length
     this.files = results.map((file) => file.filename).sort(pathSort);
+
+    // Add files to map
+    this.fileMap = new Map<string, PrFile>();
+    results.forEach((file) => this.fileMap.set(file.filename, file));
   }
 
   /**

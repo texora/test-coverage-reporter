@@ -42,6 +42,7 @@ export function generateDiffReport(
       // Generate delta
       const section = {
         isNewFile,
+        fileUrl: prFiles.fileUrl(key),
         lines: generateDiff("lines", target, base),
         statements: generateDiff("statements", target, base),
         functions: generateDiff("functions", target, base),
