@@ -59,6 +59,7 @@ jobs:
   report:
     runs-on: ubuntu-latest
     needs: [test, baseCoverage]
+    if: always() && needs.test.result == 'success'
     steps:
       - name: Checkout
         uses: actions/checkout@v3
