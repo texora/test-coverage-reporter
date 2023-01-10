@@ -80,7 +80,7 @@ jobs:
           path: base-coverage
 
       - name: Generate report
-        uses: jgillick/test-coverage-reporter@main
+        uses: jgillick/test-coverage-reporter@pr-files2
         with:
           coverage-file: ${{steps.prCoverage.outputs.download-path}}/coverage-final.json
           base-coverage-file: ${{steps.baseCoverage.outputs.download-path}}/coverage-final.json
