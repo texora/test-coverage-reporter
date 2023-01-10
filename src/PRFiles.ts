@@ -80,6 +80,7 @@ export default class PRFiles {
       }
     );
 
+    console.log("All files!");
     console.log(results);
 
     // Get the list of file names and sort them by length
@@ -88,6 +89,18 @@ export default class PRFiles {
     // Add files to map
     this.fileMap = new Map<string, PrFile>();
     results.forEach((file) => this.fileMap.set(file.filename, file));
+
+    const file = this.fileMap.get("src/PRFiles.ts");
+    if (file) {
+      const tree = await client.rest.git.getTree({
+        owner: repoOwner,
+        repo: repoName,
+        pull_number: prNumber,
+        tree_sha: file?.sha,
+      });
+      console.log("TREE");
+      console.log(tree);
+    }
   }
 
   /**
