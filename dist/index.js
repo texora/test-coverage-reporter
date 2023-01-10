@@ -26840,18 +26840,22 @@ function generateDiffReport(coverage, baseCoverage, prFiles, inputs) {
     };
     const hasBaseCoverage = ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) > 0;
     // Generate diff for each file
-    Object.keys(coverage).map((key) => {
+    Object.keys(coverage)
+        .map((key) => {
         const target = coverage[key] || {};
         const base = baseCoverage[key];
         const isNewFile = hasBaseCoverage &&
             key !== "total" &&
             typeof target.lines !== "undefined" &&
             typeof base === "undefined";
+        // Don't generate report for non-PR fils
         const isPrFile = prFiles.inPR(key);
+        if (!isPrFile) {
+            return null;
+        }
         // Generate delta
         const section = {
             isNewFile,
-            isPrFile,
             lines: generateDiff("lines", target, base),
             statements: generateDiff("statements", target, base),
             functions: generateDiff("functions", target, base),
@@ -26859,7 +26863,8 @@ function generateDiffReport(coverage, baseCoverage, prFiles, inputs) {
         };
         diffReport.sections[key] = section;
         diffReport.biggestDiff = Math.min(diffReport.biggestDiff, section.lines.diff, section.statements.diff, section.functions.diff, section.branches.diff);
-    });
+    })
+        .filter((i) => i !== null);
     return diffReport;
 }
 exports.generateDiffReport = generateDiffReport;
@@ -27164,10 +27169,6 @@ function getTemplateVars(report, failureMessage, inputs) {
     // Process all the file deltas
     let coverageFileFailurePercent = 0;
     Object.entries(report.sections).forEach(([key, summary]) => {
-        // Don't add to report if the file is not in the PR
-        if (key !== "total" && !summary.isPrFile) {
-            return;
-        }
         // Strip path prefix and add to report
         let name = key;
         if (stripPathPrefix && name.indexOf(stripPathPrefix) === 0) {
