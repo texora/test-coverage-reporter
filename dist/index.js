@@ -26724,6 +26724,104 @@ function wrappy (fn, cb) {
 
 /***/ }),
 
+/***/ 7851:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    var desc = Object.getOwnPropertyDescriptor(m, k);
+    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+      desc = { enumerable: true, get: function() { return m[k]; } };
+    }
+    Object.defineProperty(o, k2, desc);
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const github = __importStar(__nccwpck_require__(5438));
+/**
+ * A helper class that holds a list of all the files included in the PR
+ * and provides helper methods to query this list.
+ */
+class PRFiles {
+    constructor(inputs) {
+        this.pathPrefix = "";
+        this.files = [];
+        this.pathPrefix = "";
+        this.inputs = inputs;
+    }
+    /**
+     * Is this coverage file included in the list of PR files
+     */
+    inPR(filepath) {
+        if (filepath.startsWith(this.pathPrefix)) {
+            filepath = filepath.substring(this.pathPrefix.length);
+        }
+        return this.files.includes(filepath);
+    }
+    /**
+     * Load the list of files included in the PR
+     */
+    async fetchPRFiles() {
+        const client = github.getOctokit(this.inputs.accessToken);
+        const repoName = this.inputs.context.repo.repo;
+        const repoOwner = this.inputs.context.repo.owner;
+        const prNumber = this.inputs.context.issue.number;
+        const results = await client.paginate("GET /repos/{owner}/{repo}/pulls/{pull_number}/files", {
+            owner: repoOwner,
+            repo: repoName,
+            pull_number: prNumber,
+        });
+        // Get the list of file names and sort them by length
+        this.files = results
+            .map((file) => file.filename)
+            .sort((a, b) => a.length - b.length);
+    }
+    /**
+     * Read the test coverage file and extract a list of files that are included in the PR
+     */
+    async loadCoverage(coverage) {
+        // Fetch PR files, if they haven't already been loaded
+        if (!this.files.length) {
+            await this.fetchPRFiles();
+        }
+        // Get list of coverage files
+        const coverageFiles = Object.keys(coverage)
+            .filter((i) => i !== "total")
+            .sort((a, b) => a.length - b.length);
+        // Find the first PR file that matches a coverage file and extract the path root
+        this.pathPrefix = "";
+        for (let prFile of this.files) {
+            const coverageFile = coverageFiles.find((path) => path.endsWith(prFile));
+            // Extract path prefix from coverage report file
+            if (coverageFile) {
+                const prefixLen = coverageFile.length - prFile.length;
+                this.pathPrefix = coverageFile.substring(0, prefixLen);
+                break;
+            }
+        }
+    }
+}
+exports["default"] = PRFiles;
+
+
+/***/ }),
+
 /***/ 4275:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -26734,7 +26832,7 @@ exports.generateDiffReport = void 0;
 /**
  * Generate a diff summary of two coverage files.
  */
-function generateDiffReport(coverage, baseCoverage, inputs) {
+function generateDiffReport(coverage, baseCoverage, prFiles, inputs) {
     var _a;
     const diffReport = {
         biggestDiff: 0,
@@ -26749,9 +26847,11 @@ function generateDiffReport(coverage, baseCoverage, inputs) {
             key !== "total" &&
             typeof target.lines !== "undefined" &&
             typeof base === "undefined";
+        const isPrFile = prFiles.inPR(key);
         // Generate delta
         const section = {
             isNewFile,
+            isPrFile,
             lines: generateDiff("lines", target, base),
             statements: generateDiff("statements", target, base),
             functions: generateDiff("functions", target, base),
@@ -26881,19 +26981,21 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.main = void 0;
-const child_process_1 = __nccwpck_require__(2081);
 const core = __importStar(__nccwpck_require__(2186));
 const github = __importStar(__nccwpck_require__(5438));
 const fileLoader_1 = __nccwpck_require__(323);
+const PRFiles_1 = __importDefault(__nccwpck_require__(7851));
 const diff_1 = __nccwpck_require__(4275);
 const output_1 = __nccwpck_require__(5768);
 /**
  * Get the action inputs
  */
 function loadInputs() {
-    const pwd = (0, child_process_1.execSync)("pwd").toString().trim();
     return {
         accessToken: core.getInput("access-token", { required: true }),
         coveragePath: core.getInput("coverage-file", { required: true }),
@@ -26901,7 +27003,7 @@ function loadInputs() {
         failFileReduced: Number(core.getInput("fail-file-reduced")),
         title: core.getInput("title"),
         customMessage: core.getInput("custom-message"),
-        stripPathPrefix: core.getInput("strip-path-prefix") || pwd,
+        stripPathPrefix: core.getInput("strip-path-prefix"),
         context: github.context,
     };
 }
@@ -26919,9 +27021,16 @@ async function main() {
         if ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) {
             baseCoverage = await (0, fileLoader_1.loadCoverageFile)(inputs.baseCoveragePath);
         }
+        // Get PR files
+        const prFiles = new PRFiles_1.default(inputs);
+        await prFiles.loadCoverage(coverage);
+        // Set path prefix
+        if (!inputs.stripPathPrefix) {
+            inputs.stripPathPrefix = prFiles.pathPrefix;
+        }
         // Generate diff report
         console.log("Generating diff report");
-        const diff = (0, diff_1.generateDiffReport)(coverage, baseCoverage, inputs);
+        const diff = (0, diff_1.generateDiffReport)(coverage, baseCoverage, prFiles, inputs);
         // Check for PR failure
         let failed = false;
         let failureMessage = null;
@@ -27090,7 +27199,7 @@ function getTemplateVars(report, failureMessage, inputs) {
             tmplVars.total = tmplFileSummary;
         }
         else {
-            const bucket = hasChange ? "changed" : "unchanged";
+            const bucket = hasChange && summary.isPrFile ? "changed" : "unchanged";
             tmplVars[bucket].push(tmplFileSummary);
             tmplVars.all.push(tmplFileSummary);
         }

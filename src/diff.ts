@@ -5,6 +5,7 @@ import {
   CoverageSection,
   CoverageDiff,
 } from "./types";
+import PRFiles from "./PRFiles";
 
 /**
  * Generate a diff summary of two coverage files.
@@ -12,6 +13,7 @@ import {
 export function generateDiffReport(
   coverage: CoverageSummary,
   baseCoverage: CoverageSummary,
+  prFiles: PRFiles,
   inputs: Inputs
 ): DiffReport {
   const diffReport: DiffReport = {
@@ -29,10 +31,12 @@ export function generateDiffReport(
       key !== "total" &&
       typeof target.lines !== "undefined" &&
       typeof base === "undefined";
+    const isPrFile = prFiles.inPR(key);
 
     // Generate delta
     const section = {
       isNewFile,
+      isPrFile,
       lines: generateDiff("lines", target, base),
       statements: generateDiff("statements", target, base),
       functions: generateDiff("functions", target, base),

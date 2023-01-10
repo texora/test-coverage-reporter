@@ -1,9 +1,9 @@
-import { execSync } from "child_process";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 
 import { Inputs } from "./types";
 import { loadCoverageFile } from "./fileLoader";
+import PRFiles from "./PRFiles";
 import { generateDiffReport } from "./diff";
 import {
   generateOutput,
@@ -16,8 +16,6 @@ import {
  * Get the action inputs
  */
 function loadInputs(): Inputs {
-  const pwd = execSync("pwd").toString().trim();
-
   return {
     accessToken: core.getInput("access-token", { required: true }),
     coveragePath: core.getInput("coverage-file", { required: true }),
@@ -25,7 +23,7 @@ function loadInputs(): Inputs {
     failFileReduced: Number(core.getInput("fail-file-reduced")),
     title: core.getInput("title"),
     customMessage: core.getInput("custom-message"),
-    stripPathPrefix: core.getInput("strip-path-prefix") || pwd,
+    stripPathPrefix: core.getInput("strip-path-prefix"),
     context: github.context,
   };
 }
@@ -45,9 +43,18 @@ export async function main() {
       baseCoverage = await loadCoverageFile(inputs.baseCoveragePath);
     }
 
+    // Get PR files
+    const prFiles = new PRFiles(inputs);
+    await prFiles.loadCoverage(coverage);
+
+    // Set path prefix
+    if (!inputs.stripPathPrefix) {
+      inputs.stripPathPrefix = prFiles.pathPrefix;
+    }
+
     // Generate diff report
     console.log("Generating diff report");
-    const diff = generateDiffReport(coverage, baseCoverage, inputs);
+    const diff = generateDiffReport(coverage, baseCoverage, prFiles, inputs);
 
     // Check for PR failure
     let failed = false;

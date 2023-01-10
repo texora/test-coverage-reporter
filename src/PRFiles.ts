@@ -1,0 +1,81 @@
+import * as github from "@actions/github";
+import { Inputs, CoverageSummary } from "./types";
+
+/**
+ * A helper class that holds a list of all the files included in the PR
+ * and provides helper methods to query this list.
+ */
+export default class PRFiles {
+  inputs: Inputs;
+  files: string[];
+  pathPrefix: string = "";
+
+  constructor(inputs: Inputs) {
+    this.files = [];
+    this.pathPrefix = "";
+    this.inputs = inputs;
+  }
+
+  /**
+   * Is this coverage file included in the list of PR files
+   */
+  inPR(filepath: string): boolean {
+    if (filepath.startsWith(this.pathPrefix)) {
+      filepath = filepath.substring(this.pathPrefix.length);
+    }
+    return this.files.includes(filepath);
+  }
+
+  /**
+   * Load the list of files included in the PR
+   */
+  async fetchPRFiles() {
+    const client = github.getOctokit(this.inputs.accessToken);
+
+    const repoName = this.inputs.context.repo.repo;
+    const repoOwner = this.inputs.context.repo.owner;
+    const prNumber = this.inputs.context.issue.number;
+
+    const results = await client.paginate(
+      "GET /repos/{owner}/{repo}/pulls/{pull_number}/files",
+      {
+        owner: repoOwner,
+        repo: repoName,
+        pull_number: prNumber,
+      }
+    );
+
+    // Get the list of file names and sort them by length
+    this.files = results
+      .map((file) => file.filename)
+      .sort((a, b) => a.length - b.length);
+  }
+
+  /**
+   * Read the test coverage file and extract a list of files that are included in the PR
+   */
+  async loadCoverage(coverage: CoverageSummary) {
+    // Fetch PR files, if they haven't already been loaded
+    if (!this.files.length) {
+      await this.fetchPRFiles();
+    }
+
+    // Get list of coverage files
+    const coverageFiles = Object.keys(coverage)
+      .filter((i) => i !== "total")
+      .sort((a, b) => a.length - b.length);
+
+    // Find the first PR file that matches a coverage file and extract the path root
+    this.pathPrefix = "";
+    for (let prFile of this.files) {
+      const coverageFile = coverageFiles.find((path) => path.endsWith(prFile));
+
+      // Extract path prefix from coverage report file
+      if (coverageFile) {
+        const prefixLen = coverageFile.length - prFile.length;
+        this.pathPrefix = coverageFile.substring(0, prefixLen);
+        break;
+      }
+    }
+  }
+}

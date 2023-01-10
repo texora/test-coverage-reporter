@@ -39,6 +39,7 @@ export type DiffSummary = {
   functions: CoverageDiff;
   branches: CoverageDiff;
   isNewFile?: boolean;
+  isPrFile?: boolean;
 };
 
 export type CoverageDiff = {
