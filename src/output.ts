@@ -95,6 +95,11 @@ export function getTemplateVars(
   // Process all the file deltas
   let coverageFileFailurePercent = 0;
   Object.entries(report.sections).forEach(([key, summary]) => {
+    // Don't add to report if the file is not in the PR
+    if (key !== "total" && !summary.isPrFile) {
+      return;
+    }
+
     // Strip path prefix and add to report
     let name = key;
     if (stripPathPrefix && name.indexOf(stripPathPrefix) === 0) {
@@ -134,7 +139,7 @@ export function getTemplateVars(
       tmplFileSummary.name = "Total";
       tmplVars.total = tmplFileSummary;
     } else {
-      const bucket = hasChange && summary.isPrFile ? "changed" : "unchanged";
+      const bucket = hasChange ? "changed" : "unchanged";
       tmplVars[bucket].push(tmplFileSummary);
       tmplVars.all.push(tmplFileSummary);
     }
