@@ -3,9 +3,11 @@ import type { Context } from "@actions/github/lib/context";
 
 import { Inputs, CoverageSummary, CoverageTypeSummary } from "./types";
 import { generateDiffReport } from "./diff";
+import PRFiles from "./PRFiles";
 
 describe("diff", () => {
   let inputs: Inputs;
+  let prFiles: PRFiles;
 
   beforeEach(() => {
     inputs = {
@@ -22,6 +24,7 @@ describe("diff", () => {
         },
       } as Context,
     };
+    prFiles = new PRFiles(inputs);
   });
 
   describe("generateDiffReport", () => {
@@ -52,13 +55,15 @@ describe("diff", () => {
     };
 
     test("is new file", () => {
+      jest.spyOn(prFiles, "inPR").mockReturnValue(false);
       const targetCoverage = createFileCoverage({
         file: "file1",
         total: 10,
         percent: 100,
       });
 
-      const diff = generateDiffReport(targetCoverage, {}, inputs);
+      const diff = generateDiffReport(targetCoverage, {}, prFiles, inputs);
+      expect(diff.sections["file1"].isPrFile).toBe(false);
       expect(diff.sections["file1"].isNewFile).toBe(true);
       expect(diff.sections["file1"].lines.diff).toBe(0);
       expect(diff.sections["file1"].statements.diff).toBe(0);
@@ -77,7 +82,12 @@ describe("diff", () => {
         total: 10,
         percent: 100,
       });
-      const diff = generateDiffReport(targetCoverage, baseCoverage, inputs);
+      const diff = generateDiffReport(
+        targetCoverage,
+        baseCoverage,
+        prFiles,
+        inputs
+      );
       expect(diff.sections["file1"].isNewFile).toBe(false);
     });
 
@@ -93,7 +103,12 @@ describe("diff", () => {
         percent: 100,
       });
 
-      const diff = generateDiffReport(targetCoverage, baseCoverage, inputs);
+      const diff = generateDiffReport(
+        targetCoverage,
+        baseCoverage,
+        prFiles,
+        inputs
+      );
       expect(diff.sections["file1"].lines.percent).toBe(100);
       expect(diff.sections["file1"].lines.diff).toBe(15);
     });
@@ -110,9 +125,37 @@ describe("diff", () => {
         percent: 85,
       });
 
-      const diff = generateDiffReport(targetCoverage, baseCoverage, inputs);
+      const diff = generateDiffReport(
+        targetCoverage,
+        baseCoverage,
+        prFiles,
+        inputs
+      );
       expect(diff.sections["file1"].lines.percent).toBe(85);
       expect(diff.sections["file1"].lines.diff).toBe(-15);
+    });
+
+    test("is PR file", () => {
+      jest.spyOn(prFiles, "inPR").mockReturnValue(true);
+
+      const baseCoverage = createFileCoverage({
+        file: "file1",
+        total: 10,
+        percent: 100,
+      });
+      const targetCoverage = createFileCoverage({
+        file: "file1",
+        total: 10,
+        percent: 85,
+      });
+
+      const diff = generateDiffReport(
+        targetCoverage,
+        baseCoverage,
+        prFiles,
+        inputs
+      );
+      expect(diff.sections["file1"].isPrFile).toBe(true);
     });
   });
 });

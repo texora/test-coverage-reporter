@@ -39,11 +39,13 @@ describe("output", () => {
       total,
       percent,
       diff,
+      isPrFile,
       isNewFile = false,
     }: {
       total: number;
       percent: number;
       diff: number;
+      isPrFile: boolean;
       isNewFile?: boolean;
     }): DiffSummary => {
       return {
@@ -52,6 +54,7 @@ describe("output", () => {
         functions: { total: 3, percent: 4, diff: 0 },
         branches: { total: 5, percent: 6, diff: 0 },
         isNewFile,
+        isPrFile,
       };
     };
 
@@ -96,6 +99,8 @@ describe("output", () => {
         total: 1000,
         percent: 82.1,
         diff: 3.45,
+        isNewFile: false,
+        isPrFile: true,
       });
 
       const vars = getTemplateVars(report, null, inputs);
@@ -136,18 +141,20 @@ describe("output", () => {
         customMessage: "",
         commitSha: "1234567890",
         commitUrl:
-          "https://github.com/jgillick/test-coverage-reporter/commits/1234567890",
+          "https://github.com/jgillick/test-coverage-reporter/commit/1234567890",
         prIdentifier: "<!-- test-coverage-reporter-output -->",
-        renderFileSummary: expect.anything(),
+        renderFileSummaryTableRow: expect.anything(),
+        renderFileSummaryTableHeader: expect.anything(),
       });
     });
 
-    test("unchanged file", () => {
+    test("unchanged file and PR file", () => {
       const report = generateReport();
       report.sections.file1 = generateFileSummary({
         total: 100,
         percent: 85,
         diff: 0,
+        isPrFile: true,
       });
 
       const vars = getTemplateVars(report, null, inputs);
@@ -155,17 +162,32 @@ describe("output", () => {
       expect(vars.unchanged.length).toBe(1);
     });
 
-    test("changed file", () => {
+    test("changed file and PR file", () => {
       const report = generateReport();
       report.sections.file1 = generateFileSummary({
         total: 100,
         percent: 85,
         diff: 1,
+        isPrFile: true,
       });
 
       const vars = getTemplateVars(report, null, inputs);
       expect(vars.changed.length).toBe(1);
       expect(vars.unchanged.length).toBe(0);
+    });
+
+    test("PR file with changed coverage", () => {
+      const report = generateReport();
+      report.sections.file1 = generateFileSummary({
+        total: 100,
+        percent: 85,
+        diff: 1,
+        isPrFile: false,
+      });
+
+      const vars = getTemplateVars(report, null, inputs);
+      expect(vars.changed.length).toBe(0);
+      expect(vars.unchanged.length).toBe(1);
     });
 
     test("new file", () => {
@@ -175,6 +197,7 @@ describe("output", () => {
         percent: 85,
         diff: 0,
         isNewFile: true,
+        isPrFile: true,
       });
 
       const vars = getTemplateVars(report, null, inputs);
@@ -188,6 +211,7 @@ describe("output", () => {
         total: 100,
         percent: 85,
         diff: 0.01,
+        isPrFile: true,
       });
 
       const vars = getTemplateVars(report, null, inputs);
@@ -201,6 +225,7 @@ describe("output", () => {
         total: 100,
         percent: 85,
         diff: -1,
+        isPrFile: true,
       });
 
       const vars = getTemplateVars(report, null, inputs);
@@ -214,11 +239,13 @@ describe("output", () => {
         total: 100,
         percent: 85,
         diff: -1,
+        isPrFile: true,
       });
       report.sections.file2 = generateFileSummary({
         total: 100,
         percent: 85,
         diff: 0,
+        isPrFile: true,
       });
 
       const vars = getTemplateVars(report, null, inputs);
