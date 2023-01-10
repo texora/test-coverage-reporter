@@ -167,5 +167,36 @@ describe("diff", () => {
       expect(diff.sections["file1"]).toBeDefined();
       expect(diff.sections["file2"]).not.toBeDefined();
     });
+
+    test("do not filter out total section", () => {
+      jest.spyOn(prFiles, "inPR").mockReturnValue(false);
+
+      const baseCoverage = createFileCoverage({
+        file: "file1",
+        total: 10,
+        percent: 100,
+      });
+      const targetCoverage = {
+        ...createFileCoverage({
+          file: "total",
+          total: 10,
+          percent: 85,
+        }),
+        ...createFileCoverage({
+          file: "file2",
+          total: 10,
+          percent: 85,
+        }),
+      };
+
+      const diff = generateDiffReport(
+        targetCoverage,
+        baseCoverage,
+        prFiles,
+        inputs
+      );
+      expect(diff.sections["total"]).toBeDefined();
+      expect(diff.sections["file1"]).not.toBeDefined();
+    });
   });
 });
