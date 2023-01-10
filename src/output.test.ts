@@ -143,8 +143,8 @@ describe("output", () => {
         commitUrl:
           "https://github.com/jgillick/test-coverage-reporter/commit/1234567890",
         prIdentifier: "<!-- test-coverage-reporter-output -->",
-        renderFileSummaryTableRow: expect.anything(),
         renderFileSummaryTableHeader: expect.anything(),
+        renderFileSummaryTableRow: expect.anything(),
       });
     });
 
