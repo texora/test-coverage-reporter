@@ -39,7 +39,7 @@ describe("PRFiles", () => {
           Promise.resolve([
             { filename: "/z" },
             { filename: "/a/b/c" },
-            { filename: "/a" },
+            { filename: "/abcdefg/hijklmn" },
             { filename: "/c/d/e/f/g" },
             { filename: "/x/y" },
           ])
@@ -47,11 +47,11 @@ describe("PRFiles", () => {
       } as unknown as OctoKit);
     });
 
-    test("sort files list by path lengt", async () => {
+    test("sort files list by path depth", async () => {
       await prFiles.fetchPRFiles();
       expect(prFiles.files).toEqual([
         "/z",
-        "/a",
+        "/abcdefg/hijklmn",
         "/x/y",
         "/a/b/c",
         "/c/d/e/f/g",

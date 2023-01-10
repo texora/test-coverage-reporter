@@ -46,9 +46,7 @@ export default class PRFiles {
     );
 
     // Get the list of file names and sort them by length
-    this.files = results
-      .map((file) => file.filename)
-      .sort((a, b) => a.length - b.length);
+    this.files = results.map((file) => file.filename).sort(pathSort);
   }
 
   /**
@@ -63,7 +61,7 @@ export default class PRFiles {
     // Get list of coverage files
     const coverageFiles = Object.keys(coverage)
       .filter((i) => i !== "total")
-      .sort((a, b) => a.length - b.length);
+      .sort(pathSort);
 
     // Find the first PR file that matches a coverage file and extract the path root
     this.pathPrefix = "";
@@ -78,4 +76,16 @@ export default class PRFiles {
       }
     }
   }
+}
+
+/**
+ * Sort with the path closest to root at the top
+ */
+function pathSort(pathA: string, pathB: string) {
+  const depthA = pathA.match(/\//g)?.length || 0;
+  const depthB = pathB.match(/\//g)?.length || 0;
+  if (depthA === depthB) {
+    return pathA.localeCompare(pathB);
+  }
+  return depthA - depthB;
 }
