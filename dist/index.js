@@ -26779,15 +26779,14 @@ class PRFiles {
      * Get the URL to the file in the PR commit
      */
     fileUrl(filepath) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c;
         // Construct commit URL
-        const commitSha = ((_c = (_b = (_a = this.inputs.context.payload) === null || _a === void 0 ? void 0 : _a.pull_request) === null || _b === void 0 ? void 0 : _b.head) === null || _c === void 0 ? void 0 : _c.sha) ||
-            this.inputs.context.sha;
-        const repoUrl = (_d = this.inputs.context.payload.repository) === null || _d === void 0 ? void 0 : _d.html_url;
-        if (!commitSha || !repoUrl) {
+        const repoUrl = (_a = this.inputs.context.payload.repository) === null || _a === void 0 ? void 0 : _a.html_url;
+        const pullId = (_c = (_b = this.inputs.context.payload) === null || _b === void 0 ? void 0 : _b.pull_request) === null || _c === void 0 ? void 0 : _c.number;
+        if (!repoUrl || !pullId) {
             return null;
         }
-        let url = `${repoUrl}/commit/${commitSha}`;
+        let url = `${repoUrl}/pull/${pullId}/files`;
         // Find file sha
         if (filepath.startsWith(this.pathPrefix)) {
             filepath = filepath.substring(this.pathPrefix.length);
@@ -26814,6 +26813,7 @@ class PRFiles {
             repo: repoName,
             pull_number: prNumber,
         });
+        console.log(results);
         // Get the list of file names and sort them by length
         this.files = results.map((file) => file.filename).sort(pathSort);
         // Add files to map
