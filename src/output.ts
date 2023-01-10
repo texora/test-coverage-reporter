@@ -139,7 +139,7 @@ export function getTemplateVars(
       tmplFileSummary.name = "Total";
       tmplVars.total = tmplFileSummary;
     } else {
-      const bucket = hasChange && summary.isPrFile ? "changed" : "unchanged";
+      const bucket = hasChange ? "changed" : "unchanged";
       tmplVars[bucket].push(tmplFileSummary);
       tmplVars.all.push(tmplFileSummary);
     }
