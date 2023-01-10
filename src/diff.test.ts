@@ -24,7 +24,9 @@ describe("diff", () => {
         },
       } as Context,
     };
+
     prFiles = new PRFiles(inputs);
+    jest.spyOn(prFiles, "inPR").mockReturnValue(true);
   });
 
   describe("generateDiffReport", () => {
@@ -55,7 +57,6 @@ describe("diff", () => {
     };
 
     test("is new file", () => {
-      jest.spyOn(prFiles, "inPR").mockReturnValue(false);
       const targetCoverage = createFileCoverage({
         file: "file1",
         total: 10,
@@ -63,7 +64,6 @@ describe("diff", () => {
       });
 
       const diff = generateDiffReport(targetCoverage, {}, prFiles, inputs);
-      expect(diff.sections["file1"].isPrFile).toBe(false);
       expect(diff.sections["file1"].isNewFile).toBe(true);
       expect(diff.sections["file1"].lines.diff).toBe(0);
       expect(diff.sections["file1"].statements.diff).toBe(0);
@@ -135,19 +135,28 @@ describe("diff", () => {
       expect(diff.sections["file1"].lines.diff).toBe(-15);
     });
 
-    test("is PR file", () => {
-      jest.spyOn(prFiles, "inPR").mockReturnValue(true);
+    test("filter out non-PR files", () => {
+      jest
+        .spyOn(prFiles, "inPR")
+        .mockImplementation((path: string) => path === "file1");
 
       const baseCoverage = createFileCoverage({
         file: "file1",
         total: 10,
         percent: 100,
       });
-      const targetCoverage = createFileCoverage({
-        file: "file1",
-        total: 10,
-        percent: 85,
-      });
+      const targetCoverage = {
+        ...createFileCoverage({
+          file: "file1",
+          total: 10,
+          percent: 85,
+        }),
+        ...createFileCoverage({
+          file: "file2",
+          total: 10,
+          percent: 85,
+        }),
+      };
 
       const diff = generateDiffReport(
         targetCoverage,
@@ -155,7 +164,8 @@ describe("diff", () => {
         prFiles,
         inputs
       );
-      expect(diff.sections["file1"].isPrFile).toBe(true);
+      expect(diff.sections["file1"]).toBeDefined();
+      expect(diff.sections["file2"]).not.toBeDefined();
     });
   });
 });

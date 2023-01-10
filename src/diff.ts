@@ -23,35 +23,41 @@ export function generateDiffReport(
   const hasBaseCoverage = inputs.baseCoveragePath?.length > 0;
 
   // Generate diff for each file
-  Object.keys(coverage).map((key) => {
-    const target = coverage[key] || {};
-    const base = baseCoverage[key];
-    const isNewFile =
-      hasBaseCoverage &&
-      key !== "total" &&
-      typeof target.lines !== "undefined" &&
-      typeof base === "undefined";
-    const isPrFile = prFiles.inPR(key);
+  Object.keys(coverage)
+    .map((key) => {
+      const target = coverage[key] || {};
+      const base = baseCoverage[key];
+      const isNewFile =
+        hasBaseCoverage &&
+        key !== "total" &&
+        typeof target.lines !== "undefined" &&
+        typeof base === "undefined";
 
-    // Generate delta
-    const section = {
-      isNewFile,
-      isPrFile,
-      lines: generateDiff("lines", target, base),
-      statements: generateDiff("statements", target, base),
-      functions: generateDiff("functions", target, base),
-      branches: generateDiff("branches", target, base),
-    };
+      // Don't generate report for non-PR fils
+      const isPrFile = prFiles.inPR(key);
+      if (!isPrFile) {
+        return null;
+      }
 
-    diffReport.sections[key] = section;
-    diffReport.biggestDiff = Math.min(
-      diffReport.biggestDiff,
-      section.lines.diff,
-      section.statements.diff,
-      section.functions.diff,
-      section.branches.diff
-    );
-  });
+      // Generate delta
+      const section = {
+        isNewFile,
+        lines: generateDiff("lines", target, base),
+        statements: generateDiff("statements", target, base),
+        functions: generateDiff("functions", target, base),
+        branches: generateDiff("branches", target, base),
+      };
+
+      diffReport.sections[key] = section;
+      diffReport.biggestDiff = Math.min(
+        diffReport.biggestDiff,
+        section.lines.diff,
+        section.statements.diff,
+        section.functions.diff,
+        section.branches.diff
+      );
+    })
+    .filter((i) => i !== null);
 
   return diffReport;
 }
