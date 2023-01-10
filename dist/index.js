@@ -26804,6 +26804,7 @@ class PRFiles {
      * Load the list of files included in the PR
      */
     async fetchPRFiles() {
+        var _a, _b, _c;
         const client = github.getOctokit(this.inputs.accessToken);
         const repoName = this.inputs.context.repo.repo;
         const repoOwner = this.inputs.context.repo.owner;
@@ -26821,12 +26822,15 @@ class PRFiles {
         this.fileMap = new Map();
         results.forEach((file) => this.fileMap.set(file.filename, file));
         const file = this.fileMap.get("src/PRFiles.ts");
-        if (file) {
+        const commitSha = ((_b = (_a = this.inputs.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.head) === null || _b === void 0 ? void 0 : _b.sha) ||
+            ((_c = github === null || github === void 0 ? void 0 : github.context) === null || _c === void 0 ? void 0 : _c.sha);
+        console.log({ commitSha });
+        if (file && commitSha) {
             const tree = await client.rest.git.getTree({
                 owner: repoOwner,
                 repo: repoName,
                 pull_number: prNumber,
-                tree_sha: file === null || file === void 0 ? void 0 : file.sha,
+                tree_sha: commitSha,
             });
             console.log("TREE");
             console.log(tree);
