@@ -38,15 +38,14 @@ export default class PRFiles {
    */
   fileUrl(filepath: string): string | null {
     // Construct commit URL
-    const commitSha =
-      this.inputs.context.payload?.pull_request?.head?.sha ||
-      this.inputs.context.sha;
     const repoUrl = this.inputs.context.payload.repository?.html_url;
-    if (!commitSha || !repoUrl) {
+    const pullId = this.inputs.context.payload?.pull_request?.number;
+
+    if (!repoUrl || !pullId) {
       return null;
     }
 
-    let url = `${repoUrl}/commit/${commitSha}`;
+    let url = `${repoUrl}/pull/${pullId}/files`;
 
     // Find file sha
     if (filepath.startsWith(this.pathPrefix)) {
@@ -80,6 +79,8 @@ export default class PRFiles {
         pull_number: prNumber,
       }
     );
+
+    console.log(results);
 
     // Get the list of file names and sort them by length
     this.files = results.map((file) => file.filename).sort(pathSort);

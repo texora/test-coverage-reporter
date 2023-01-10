@@ -29,13 +29,10 @@ describe("PRFiles", () => {
         },
         payload: {
           pull_request: {
-            head: {
-              sha: "1234",
-            },
+            number: 5,
           },
           repository: {
-            html_url:
-              "https://github.com/jgillick/test-coverage-reporter/pull/5",
+            html_url: "https://github.com/jgillick/test-coverage-reporter",
           },
         },
       } as unknown as Context,
@@ -117,7 +114,7 @@ describe("PRFiles", () => {
       prFiles.pathPrefix = "/x";
       const url = prFiles.fileUrl("/x/a/b/c");
       expect(url).toBe(
-        "https://github.com/jgillick/test-coverage-reporter/pull/5/commit/1234#diff-234"
+        "https://github.com/jgillick/test-coverage-reporter/pull/5/files#diff-234"
       );
     });
 
