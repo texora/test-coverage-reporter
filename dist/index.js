@@ -26752,7 +26752,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const crypto_1 = __importDefault(__nccwpck_require__(6113));
 const github = __importStar(__nccwpck_require__(5438));
 /**
  * A helper class that holds a list of all the files included in the PR
@@ -26787,13 +26791,17 @@ class PRFiles {
             return null;
         }
         let url = `${repoUrl}/pull/${pullId}/files`;
-        // Find file sha
+        // Find file path sha
         if (filepath.startsWith(this.pathPrefix)) {
             filepath = filepath.substring(this.pathPrefix.length);
         }
-        if (this.fileMap.has(filepath)) {
-            const file = this.fileMap.get(filepath);
-            url += `#diff-${file === null || file === void 0 ? void 0 : file.sha}`;
+        const file = this.fileMap.get(filepath);
+        if (file) {
+            const shaName = crypto_1.default
+                .createHash("sha256")
+                .update(file.filename)
+                .digest("hex");
+            url += `#diff-${shaName}`;
         }
         else {
             return null;
@@ -26804,7 +26812,6 @@ class PRFiles {
      * Load the list of files included in the PR
      */
     async fetchPRFiles() {
-        var _a, _b, _c;
         const client = github.getOctokit(this.inputs.accessToken);
         const repoName = this.inputs.context.repo.repo;
         const repoOwner = this.inputs.context.repo.owner;
@@ -26814,27 +26821,11 @@ class PRFiles {
             repo: repoName,
             pull_number: prNumber,
         });
-        console.log("All files!");
-        console.log(results);
         // Get the list of file names and sort them by length
         this.files = results.map((file) => file.filename).sort(pathSort);
         // Add files to map
         this.fileMap = new Map();
         results.forEach((file) => this.fileMap.set(file.filename, file));
-        const file = this.fileMap.get("src/PRFiles.ts");
-        const commitSha = ((_b = (_a = this.inputs.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.head) === null || _b === void 0 ? void 0 : _b.sha) ||
-            ((_c = github === null || github === void 0 ? void 0 : github.context) === null || _c === void 0 ? void 0 : _c.sha);
-        console.log({ commitSha });
-        if (file && commitSha) {
-            const tree = await client.rest.git.getTree({
-                owner: repoOwner,
-                repo: repoName,
-                pull_number: prNumber,
-                tree_sha: commitSha,
-            });
-            console.log("TREE");
-            console.log(tree.data.tree);
-        }
     }
     /**
      * Read the test coverage file and extract a list of files that are included in the PR

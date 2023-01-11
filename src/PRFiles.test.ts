@@ -98,11 +98,11 @@ describe("PRFiles", () => {
       jest.spyOn(github, "getOctokit").mockReturnValue({
         paginate: jest.fn(() =>
           Promise.resolve([
-            { filename: "/z", sha: "123" },
-            { filename: "/a/b/c", sha: "234" },
-            { filename: "/abcdefg/hijklmn", sha: "345" },
-            { filename: "/c/d/e/f/g", sha: "456" },
-            { filename: "/x/y", sha: "567" },
+            { filename: "/z" },
+            { filename: "/a/b/c" },
+            { filename: "/abcdefg/hijklmn" },
+            { filename: "/c/d/e/f/g" },
+            { filename: "/x/y" },
           ])
         ) as unknown as OctoKit,
       } as unknown as OctoKit);
@@ -114,7 +114,7 @@ describe("PRFiles", () => {
       prFiles.pathPrefix = "/x";
       const url = prFiles.fileUrl("/x/a/b/c");
       expect(url).toBe(
-        "https://github.com/jgillick/test-coverage-reporter/pull/5/files#diff-234"
+        "https://github.com/jgillick/test-coverage-reporter/pull/5/files#diff-42146b29e39fde22717ef69b5b3d8205802517fa2f0c55ea1d6730861b908578"
       );
     });
 

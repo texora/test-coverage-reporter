@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import * as github from "@actions/github";
 import { Inputs, CoverageSummary } from "./types";
 
@@ -47,13 +48,17 @@ export default class PRFiles {
 
     let url = `${repoUrl}/pull/${pullId}/files`;
 
-    // Find file sha
+    // Find file path sha
     if (filepath.startsWith(this.pathPrefix)) {
       filepath = filepath.substring(this.pathPrefix.length);
     }
-    if (this.fileMap.has(filepath)) {
-      const file = this.fileMap.get(filepath);
-      url += `#diff-${file?.sha}`;
+    const file = this.fileMap.get(filepath);
+    if (file) {
+      const shaName = crypto
+        .createHash("sha256")
+        .update(file.filename)
+        .digest("hex");
+      url += `#diff-${shaName}`;
     } else {
       return null;
     }
@@ -80,31 +85,12 @@ export default class PRFiles {
       }
     );
 
-    console.log("All files!");
-    console.log(results);
-
     // Get the list of file names and sort them by length
     this.files = results.map((file) => file.filename).sort(pathSort);
 
     // Add files to map
     this.fileMap = new Map<string, PrFile>();
     results.forEach((file) => this.fileMap.set(file.filename, file));
-
-    const file = this.fileMap.get("src/PRFiles.ts");
-    const commitSha =
-      this.inputs.context.payload.pull_request?.head?.sha ||
-      github?.context?.sha;
-    console.log({ commitSha });
-    if (file && commitSha) {
-      const tree = await client.rest.git.getTree({
-        owner: repoOwner,
-        repo: repoName,
-        pull_number: prNumber,
-        tree_sha: commitSha,
-      });
-      console.log("TREE");
-      console.log(tree.data.tree);
-    }
   }
 
   /**
