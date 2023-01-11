@@ -40,15 +40,17 @@ export default class PRFiles {
   fileUrl(filepath: string): string | null {
     // Construct commit URL
     const repoUrl = this.inputs.context.payload.repository?.html_url;
-    const pullId = this.inputs.context.payload?.pull_request?.number;
+    const commitSha =
+      this.inputs.context.payload.pull_request?.head?.sha ||
+      this.inputs.context.sha;
 
-    if (!repoUrl || !pullId) {
+    if (!repoUrl || !commitSha) {
       return null;
     }
 
-    let url = `${repoUrl}/pull/${pullId}/files`;
+    const baseUrl = `${repoUrl}/commit/${commitSha}`;
 
-    // Find file path sha
+    // File path sha
     if (filepath.startsWith(this.pathPrefix)) {
       filepath = filepath.substring(this.pathPrefix.length);
     }
@@ -56,9 +58,8 @@ export default class PRFiles {
       .createHash("sha256")
       .update(filepath)
       .digest("hex");
-    url += `#diff-${filenameSha}`;
 
-    return url;
+    return `${baseUrl}#diff-${filenameSha}`;
   }
 
   /**

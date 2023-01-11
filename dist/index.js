@@ -26786,12 +26786,13 @@ class PRFiles {
         var _a, _b, _c;
         // Construct commit URL
         const repoUrl = (_a = this.inputs.context.payload.repository) === null || _a === void 0 ? void 0 : _a.html_url;
-        const pullId = (_c = (_b = this.inputs.context.payload) === null || _b === void 0 ? void 0 : _b.pull_request) === null || _c === void 0 ? void 0 : _c.number;
-        if (!repoUrl || !pullId) {
+        const commitSha = ((_c = (_b = this.inputs.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.head) === null || _c === void 0 ? void 0 : _c.sha) ||
+            this.inputs.context.sha;
+        if (!repoUrl || !commitSha) {
             return null;
         }
-        let url = `${repoUrl}/pull/${pullId}/files`;
-        // Find file path sha
+        const baseUrl = `${repoUrl}/commit/${commitSha}`;
+        // File path sha
         if (filepath.startsWith(this.pathPrefix)) {
             filepath = filepath.substring(this.pathPrefix.length);
         }
@@ -26799,8 +26800,7 @@ class PRFiles {
             .createHash("sha256")
             .update(filepath)
             .digest("hex");
-        url += `#diff-${filenameSha}`;
-        return url;
+        return `${baseUrl}#diff-${filenameSha}`;
     }
     /**
      * Load the list of files included in the PR
