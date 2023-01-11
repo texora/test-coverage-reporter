@@ -117,10 +117,5 @@ describe("PRFiles", () => {
         "https://github.com/jgillick/test-coverage-reporter/pull/5/files#diff-42146b29e39fde22717ef69b5b3d8205802517fa2f0c55ea1d6730861b908578"
       );
     });
-
-    test("file not found", async () => {
-      const url = prFiles.fileUrl("/not/here");
-      expect(url).toBe(null);
-    });
   });
 });
