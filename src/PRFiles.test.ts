@@ -27,7 +27,18 @@ describe("PRFiles", () => {
           repo: "",
           owner: "",
         },
-      } as Context,
+        payload: {
+          pull_request: {
+            number: 5,
+            head: {
+              sha: "123",
+            },
+          },
+          repository: {
+            html_url: "https://github.com/jgillick/test-coverage-reporter",
+          },
+        },
+      } as unknown as Context,
     };
     prFiles = new PRFiles(inputs);
   });
@@ -82,6 +93,32 @@ describe("PRFiles", () => {
 
       expect(prFiles.inPR("/x/y/z/b/c/d")).toBe(true);
       expect(prFiles.inPR("/x/y/z/b")).toBe(false);
+    });
+  });
+
+  describe("fileUrl", () => {
+    beforeEach(async () => {
+      jest.spyOn(github, "getOctokit").mockReturnValue({
+        paginate: jest.fn(() =>
+          Promise.resolve([
+            { filename: "/z" },
+            { filename: "/a/b/c" },
+            { filename: "/abcdefg/hijklmn" },
+            { filename: "/c/d/e/f/g" },
+            { filename: "/x/y" },
+          ])
+        ) as unknown as OctoKit,
+      } as unknown as OctoKit);
+
+      await prFiles.fetchPRFiles();
+    });
+
+    test("get file URL", async () => {
+      prFiles.pathPrefix = "/x";
+      const url = prFiles.fileUrl("/x/a/b/c");
+      expect(url).toBe(
+        "https://github.com/jgillick/test-coverage-reporter/commit/123#diff-42146b29e39fde22717ef69b5b3d8205802517fa2f0c55ea1d6730861b908578"
+      );
     });
   });
 });

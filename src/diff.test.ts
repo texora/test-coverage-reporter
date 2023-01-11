@@ -22,7 +22,14 @@ describe("diff", () => {
         issue: {
           number: 123,
         },
-      } as Context,
+        payload: {
+          pull_request: {
+            head: {
+              sha: "1234",
+            },
+          },
+        },
+      } as unknown as Context,
     };
 
     prFiles = new PRFiles(inputs);

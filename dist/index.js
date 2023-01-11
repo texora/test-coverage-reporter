@@ -26752,7 +26752,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
+const crypto_1 = __importDefault(__nccwpck_require__(6113));
 const github = __importStar(__nccwpck_require__(5438));
 /**
  * A helper class that holds a list of all the files included in the PR
@@ -26764,6 +26768,7 @@ class PRFiles {
         this.files = [];
         this.pathPrefix = "";
         this.inputs = inputs;
+        this.fileMap = new Map();
     }
     /**
      * Is this coverage file included in the list of PR files
@@ -26773,6 +26778,29 @@ class PRFiles {
             filepath = filepath.substring(this.pathPrefix.length);
         }
         return this.files.includes(filepath);
+    }
+    /**
+     * Get the URL to the file in the PR commit
+     */
+    fileUrl(filepath) {
+        var _a, _b, _c;
+        // Construct commit URL
+        const repoUrl = (_a = this.inputs.context.payload.repository) === null || _a === void 0 ? void 0 : _a.html_url;
+        const commitSha = ((_c = (_b = this.inputs.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.head) === null || _c === void 0 ? void 0 : _c.sha) ||
+            this.inputs.context.sha;
+        if (!repoUrl || !commitSha) {
+            return null;
+        }
+        const baseUrl = `${repoUrl}/commit/${commitSha}`;
+        // File path sha
+        if (filepath.startsWith(this.pathPrefix)) {
+            filepath = filepath.substring(this.pathPrefix.length);
+        }
+        const filenameSha = crypto_1.default
+            .createHash("sha256")
+            .update(filepath)
+            .digest("hex");
+        return `${baseUrl}#diff-${filenameSha}`;
     }
     /**
      * Load the list of files included in the PR
@@ -26789,6 +26817,9 @@ class PRFiles {
         });
         // Get the list of file names and sort them by length
         this.files = results.map((file) => file.filename).sort(pathSort);
+        // Add files to map
+        this.fileMap = new Map();
+        results.forEach((file) => this.fileMap.set(file.filename, file));
     }
     /**
      * Read the test coverage file and extract a list of files that are included in the PR
@@ -26866,6 +26897,7 @@ function generateDiffReport(coverage, baseCoverage, prFiles, inputs) {
         // Generate delta
         const section = {
             isNewFile,
+            fileUrl: key !== "total" ? prFiles.fileUrl(key) : null,
             lines: generateDiff("lines", target, base),
             statements: generateDiff("statements", target, base),
             functions: generateDiff("functions", target, base),
@@ -27188,6 +27220,7 @@ function getTemplateVars(report, failureMessage, inputs) {
         const tmplFileSummary = {
             name,
             isNewFile: summary.isNewFile,
+            fileUrl: summary.fileUrl,
             lines: { percent: "0", diff: "0" },
             statements: { percent: "0", diff: "0" },
             functions: { percent: "0", diff: "0" },
@@ -27322,10 +27355,10 @@ function renderFileSummaryFactory(inputs) {
         else if (linePercent > 40) {
             coverageStatus = ":yellow_circle:";
         }
-        // Diff change status for the file
+        // Overall diff status for the file
         // If any of the diffs are below zero, the file get's a negative icon
         const minDiff = Object.values(summary).reduce((val, item) => {
-            if (typeof item === "object") {
+            if (typeof item === "object" && item !== null) {
                 const diff = Number(item.diff);
                 if (diff < val) {
                     return diff;
@@ -27340,6 +27373,13 @@ function renderFileSummaryFactory(inputs) {
             }
             return text;
         };
+        const formatTitle = () => {
+            const value = formatText(summary.name);
+            if (summary.fileUrl) {
+                return `[${value}](${summary.fileUrl})`;
+            }
+            return value;
+        };
         const itemOutput = (item) => {
             let itemOut = `${item.percent}%`;
             if (hasDiffs && item.diff !== "0") {
@@ -27348,7 +27388,7 @@ function renderFileSummaryFactory(inputs) {
             return formatText(itemOut);
         };
         return (`| ${coverageStatus}${changeStatus} ` +
-            `| ${formatText(summary.name)} ` +
+            `| ${formatTitle()} ` +
             `| ${itemOutput(summary.statements)} ` +
             `| ${itemOutput(summary.branches)} ` +
             `| ${itemOutput(summary.functions)} ` +
