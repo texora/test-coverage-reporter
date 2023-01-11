@@ -52,16 +52,11 @@ export default class PRFiles {
     if (filepath.startsWith(this.pathPrefix)) {
       filepath = filepath.substring(this.pathPrefix.length);
     }
-    const file = this.fileMap.get(filepath);
-    if (file) {
-      const shaName = crypto
-        .createHash("sha256")
-        .update(file.filename)
-        .digest("hex");
-      url += `#diff-${shaName}`;
-    } else {
-      return null;
-    }
+    const filenameSha = crypto
+      .createHash("sha256")
+      .update(filepath)
+      .digest("hex");
+    url += `#diff-${filenameSha}`;
 
     return url;
   }

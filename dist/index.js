@@ -26795,17 +26795,11 @@ class PRFiles {
         if (filepath.startsWith(this.pathPrefix)) {
             filepath = filepath.substring(this.pathPrefix.length);
         }
-        const file = this.fileMap.get(filepath);
-        if (file) {
-            const shaName = crypto_1.default
-                .createHash("sha256")
-                .update(file.filename)
-                .digest("hex");
-            url += `#diff-${shaName}`;
-        }
-        else {
-            return null;
-        }
+        const filenameSha = crypto_1.default
+            .createHash("sha256")
+            .update(filepath)
+            .digest("hex");
+        url += `#diff-${filenameSha}`;
         return url;
     }
     /**
@@ -26903,7 +26897,7 @@ function generateDiffReport(coverage, baseCoverage, prFiles, inputs) {
         // Generate delta
         const section = {
             isNewFile,
-            fileUrl: prFiles.fileUrl(key),
+            fileUrl: key !== "total" ? prFiles.fileUrl(key) : null,
             lines: generateDiff("lines", target, base),
             statements: generateDiff("statements", target, base),
             functions: generateDiff("functions", target, base),

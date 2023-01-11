@@ -42,7 +42,7 @@ export function generateDiffReport(
       // Generate delta
       const section = {
         isNewFile,
-        fileUrl: prFiles.fileUrl(key),
+        fileUrl: key !== "total" ? prFiles.fileUrl(key) : null,
         lines: generateDiff("lines", target, base),
         statements: generateDiff("statements", target, base),
         functions: generateDiff("functions", target, base),
