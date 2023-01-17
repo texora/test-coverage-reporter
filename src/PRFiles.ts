@@ -38,17 +38,15 @@ export default class PRFiles {
    * Get the URL to the file in the PR commit
    */
   fileUrl(filepath: string): string | null {
-    // Construct commit URL
+    // Construct the PR URL
     const repoUrl = this.inputs.context.payload.repository?.html_url;
-    const commitSha =
-      this.inputs.context.payload.pull_request?.head?.sha ||
-      this.inputs.context.sha;
+    const prNumber = this.inputs.context.payload.pull_request?.number;
 
-    if (!repoUrl || !commitSha) {
+    if (!repoUrl || !prNumber) {
       return null;
     }
 
-    const baseUrl = `${repoUrl}/commit/${commitSha}`;
+    const baseUrl = `${repoUrl}/pull/${prNumber}`;
 
     // File path sha
     if (filepath.startsWith(this.pathPrefix)) {

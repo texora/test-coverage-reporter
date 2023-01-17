@@ -26783,15 +26783,14 @@ class PRFiles {
      * Get the URL to the file in the PR commit
      */
     fileUrl(filepath) {
-        var _a, _b, _c;
-        // Construct commit URL
+        var _a, _b;
+        // Construct the PR URL
         const repoUrl = (_a = this.inputs.context.payload.repository) === null || _a === void 0 ? void 0 : _a.html_url;
-        const commitSha = ((_c = (_b = this.inputs.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.head) === null || _c === void 0 ? void 0 : _c.sha) ||
-            this.inputs.context.sha;
-        if (!repoUrl || !commitSha) {
+        const prNumber = (_b = this.inputs.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.number;
+        if (!repoUrl || !prNumber) {
             return null;
         }
-        const baseUrl = `${repoUrl}/commit/${commitSha}`;
+        const baseUrl = `${repoUrl}/pull/${prNumber}`;
         // File path sha
         if (filepath.startsWith(this.pathPrefix)) {
             filepath = filepath.substring(this.pathPrefix.length);
