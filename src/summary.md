@@ -40,7 +40,7 @@ All files
 
 <% if (changed.length){ %>
 
-Changed files
+Coverage changes
 
 <%= renderFileSummaryTableHeader() %>
 <%= changed.map((fileSummary) => renderFileSummaryTableRow(fileSummary)).join('\n') %>
