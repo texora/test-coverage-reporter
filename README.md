@@ -19,10 +19,10 @@ will merge into.
 - `coverage-file`: Path to the test coverage report
 - `base-coverage-file`: Path to the coverage report to compare against. This is most likely from the branch you plan to merge into.
 - `access-token`: Required to comment on the PR
-- `fail-delta`: If coverage for any file is reduced by this much (in percent) the run will fail. (default: `0.2`)
 - `title`: The coverage report title
-- `custom-message`: Add this custom text to the output.
 - `strip-path-prefix`: Remove this part of the path of the front of all file paths in the coverage report.
+- `fail-file-reduced`: If coverage for any file is reduced by this much (in percent) the run will fail. (default: `0.2`)
+- `custom-message`: Add this custom text to the output.
 
 ## Compare coverage with base
 
