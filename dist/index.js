@@ -26790,7 +26790,7 @@ class PRFiles {
         if (!repoUrl || !prNumber) {
             return null;
         }
-        const baseUrl = `${repoUrl}/pull/${prNumber}`;
+        const baseUrl = `${repoUrl}/pull/${prNumber}/files`;
         // File path sha
         if (filepath.startsWith(this.pathPrefix)) {
             filepath = filepath.substring(this.pathPrefix.length);
