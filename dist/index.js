@@ -27174,13 +27174,27 @@ function generateOutput(report, failureMessage, inputs) {
 }
 exports.generateOutput = generateOutput;
 /**
+ * Return the URL to the PR commit
+ */
+function prCommitUrl(inputs) {
+    var _a, _b, _c, _d;
+    const repoUrl = (_a = inputs.context.payload.repository) === null || _a === void 0 ? void 0 : _a.html_url;
+    const prNumber = (_b = inputs.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.number;
+    const commitSha = ((_d = (_c = inputs.context.payload.pull_request) === null || _c === void 0 ? void 0 : _c.head) === null || _d === void 0 ? void 0 : _d.sha) || github.context.sha;
+    if (!repoUrl || !prNumber) {
+        return "";
+    }
+    return `${repoUrl}/pull/${prNumber}/files/${commitSha}`;
+}
+/**
  * Create template variables
  */
 function getTemplateVars(report, failureMessage, inputs) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c;
     const hasDiffs = ((_a = inputs.baseCoveragePath) === null || _a === void 0 ? void 0 : _a.length) > 0;
     const commitSha = ((_c = (_b = inputs.context.payload.pull_request) === null || _b === void 0 ? void 0 : _b.head) === null || _c === void 0 ? void 0 : _c.sha) || github.context.sha;
-    const commitUrl = `${(_d = inputs.context.payload.repository) === null || _d === void 0 ? void 0 : _d.html_url}/commit/${commitSha}`;
+    const commitShaShort = commitSha.slice(0, 7);
+    const commitUrl = prCommitUrl(inputs);
     const tmplVars = {
         failureMessage,
         failed: failureMessage !== null,
@@ -27198,6 +27212,7 @@ function getTemplateVars(report, failureMessage, inputs) {
         title: inputs.title,
         customMessage: inputs.customMessage,
         commitSha,
+        commitShaShort,
         commitUrl,
         prIdentifier: PR_COMMENT_IDENTIFIER,
         renderFileSummaryTableHeader: renderFileSummaryTableHeader,

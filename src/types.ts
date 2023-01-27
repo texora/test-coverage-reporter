@@ -52,7 +52,8 @@ export type TemplateVars = {
   title: string;
   customMessage: string;
   prIdentifier: string;
-  commitSha: number;
+  commitSha: string;
+  commitShaShort: string;
   commitUrl: string;
   hasDiffs: boolean;
 

@@ -51,6 +51,21 @@ export function generateOutput(
 }
 
 /**
+ * Return the URL to the PR commit
+ */
+function prCommitUrl(inputs: Inputs) {
+  const repoUrl = inputs.context.payload.repository?.html_url;
+  const prNumber = inputs.context.payload.pull_request?.number;
+  const commitSha =
+    inputs.context.payload.pull_request?.head?.sha || github.context.sha;
+
+  if (!repoUrl || !prNumber) {
+    return "";
+  }
+  return `${repoUrl}/pull/${prNumber}/files/${commitSha}`;
+}
+
+/**
  * Create template variables
  */
 export function getTemplateVars(
@@ -61,7 +76,8 @@ export function getTemplateVars(
   const hasDiffs = inputs.baseCoveragePath?.length > 0;
   const commitSha =
     inputs.context.payload.pull_request?.head?.sha || github.context.sha;
-  const commitUrl = `${inputs.context.payload.repository?.html_url}/commit/${commitSha}`;
+  const commitShaShort = commitSha.slice(0, 7);
+  const commitUrl = prCommitUrl(inputs);
 
   const tmplVars: TemplateVars = {
     failureMessage,
@@ -80,6 +96,7 @@ export function getTemplateVars(
     title: inputs.title,
     customMessage: inputs.customMessage,
     commitSha,
+    commitShaShort,
     commitUrl,
     prIdentifier: PR_COMMENT_IDENTIFIER,
 

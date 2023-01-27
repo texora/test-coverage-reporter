@@ -26,6 +26,7 @@ describe("output", () => {
               head: {
                 sha: "1234567890",
               },
+              number: 123,
             },
             repository: {
               html_url: "https://github.com/jgillick/test-coverage-reporter",
@@ -136,8 +137,9 @@ describe("output", () => {
         title: "test",
         customMessage: "",
         commitSha: "1234567890",
+        commitShaShort: "1234567",
         commitUrl:
-          "https://github.com/jgillick/test-coverage-reporter/commit/1234567890",
+          "https://github.com/jgillick/test-coverage-reporter/pull/123/files/1234567890",
         prIdentifier: "<!-- test-coverage-reporter-output -->",
         renderFileSummaryTableHeader: expect.anything(),
         renderFileSummaryTableRow: expect.anything(),
