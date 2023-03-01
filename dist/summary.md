@@ -52,7 +52,7 @@ Coverage changes
 
 <details>
 <summary markdown="span">
-Unchanged files
+No coverage changes
 </summary>
 
 <%= renderFileSummaryTableHeader() %>
