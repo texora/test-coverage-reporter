@@ -26,14 +26,22 @@ will merge into.
 
 ## Compare coverage with base
 
-You can easily see how this PR will either add or remove coverage from the branch it will be merging into by passing the `base-coverage-file` input.
+You can easily see how this PR will either add or remove coverage from the branch it will merge into by passing the `base-coverage-file` input. 
 
 ```
-- uses: jgillick/test-coverage-reporter@v1
-  with:
-    coverage-file: coverage/coverage-final.json
-    base-coverage-file: main-branch/coverage/coverage-final.json
-    access-token: ${{ secrets.GITHUB_TOKEN }}
+report:
+  permissions: write-all
+  ...
+  steps:
+    ...
+    
+    - name: Generate report
+      uses: jgillick/test-coverage-reporter@v1
+      with:
+        coverage-file: coverage/coverage-final.json
+        base-coverage-file: main-branch/coverage/coverage-final.json
+        access-token: ${{ secrets.GITHUB_TOKEN }}
+
 ```
 
 See a full example in this [repos workflow](./.github/workflows/test.yml).
